@@ -1,0 +1,211 @@
+package main
+
+import (
+	"context"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/json"
+	"errors"
+	"flag"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"os"
+	"sync"
+	"time"
+
+	"github.com/alexedwards/scs/v2"
+	"github.com/google/uuid"
+	"go.etcd.io/bbolt"
+)
+
+var (
+	userBucket  = flag.String("user-bucket", "users", "user bucket")
+	tokenBucket = flag.String("token-bucket", "tokens", "token bucket")
+	dbName      = flag.String("db-name", "chat.db", "database name")
+	logFile     = flag.String("log-file", "chat.log", "log file")
+	url         = flag.String("url", "http://localhost:8080", "url")
+)
+
+type Server struct {
+	Logger  *log.Logger
+	DB      *bbolt.DB
+	Gateway *http.ServeMux
+	Memory  *sync.RWMutex
+	Context *context.Context
+	Rooms   map[string]*Room
+	URL     string
+	Session *scs.SessionManager
+}
+
+type Token struct {
+	ID        string
+	Email     string
+	UserID    string
+	Token     string
+	CreatedAt time.Time
+	ExpiresAt time.Time
+	Hash      []byte
+}
+
+func NewServer() *Server {
+	sessionMgr := scs.New()
+	sessionMgr.Lifetime = 24 * time.Hour
+	sessionMgr.IdleTimeout = 20 * time.Minute
+	sessionMgr.Cookie.Persist = true
+	sessionMgr.Cookie.Name = "token"
+	sessionMgr.Cookie.SameSite = http.SameSiteLaxMode
+	sessionMgr.Cookie.Secure = true
+	sessionMgr.Cookie.HttpOnly = true
+	fh, err := os.OpenFile(*logFile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
+	if err != nil {
+		log.Fatal(err)
+	}
+	myLogger := log.New(fh, "", log.LstdFlags)
+	mem := &sync.RWMutex{}
+	db, err := bbolt.Open(*dbName, 0600, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	rooms := make(map[string]*Room)
+	s := &Server{
+		Logger:  myLogger,
+		DB:      db,
+		Gateway: http.NewServeMux(),
+		Memory:  mem,
+		Context: nil,
+		Rooms:   rooms,
+		URL:     *url,
+		Session: sessionMgr,
+	}
+	s.Gateway.HandleFunc("/", s.RootHandler)
+	s.Gateway.HandleFunc("/access", s.LoginView)
+	s.Gateway.HandleFunc("/login", s.LoginHandler)
+	s.Gateway.HandleFunc("/logout", s.LogoutHandler)
+	s.Gateway.HandleFunc("/add-user", s.AddUserView)
+	s.Gateway.HandleFunc("/adduser", s.AddUserHandler)
+
+	s.Gateway.Handle("/chat", s.ValidateToken(http.HandlerFunc(s.RootHandler)))
+	return s
+}
+
+func (t *Token) CreateToken(userID string, ttl time.Duration) (*Token, error) {
+	tk := &Token{
+		UserID:    userID,
+		ExpiresAt: time.Now().Add(ttl),
+	}
+	hotSauce := make([]byte, 64)
+	_, err := io.ReadFull(rand.Reader, hotSauce)
+	if err != nil {
+		return nil, err
+	}
+	tk.Token = uuid.New().String()
+	hash := sha256.Sum256([]byte(tk.Token))
+	tk.Hash = hash[:]
+	return tk, nil
+}
+
+func (t *Token) MarshalBinary() ([]byte, error) {
+	return json.Marshal(t)
+}
+
+func (t *Token) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, t)
+}
+
+func (s *Server) TestToken(app *Server, r *http.Request) (bool, error) {
+	token, err := s.GetTokenFromSession(r)
+	if err != nil {
+		return false, err
+	}
+	tk, err := s.GetToken(token)
+	if err != nil {
+		return false, err
+	}
+	if tk.ExpiresAt.Before(time.Now()) {
+		return false, nil
+	}
+	return true, nil
+}
+
+func (s *Server) GetUserByEmail(email string) (User, error) {
+	s.Memory.RLock()
+	defer s.Memory.RUnlock()
+	var user User
+	err := s.DB.View(func(tx *bbolt.Tx) error {
+		b := tx.Bucket([]byte(*userBucket))
+		v := b.Get([]byte(email))
+		if v == nil {
+			fmt.Println("user not found")
+			return nil
+		}
+
+		return user.UnmarshalBinary(v)
+	})
+	return user, err
+}
+
+func (s *Server) AddTokenToSession(r *http.Request, w http.ResponseWriter, tk *Token) error {
+	s.Session.Put(r.Context(), "token", tk.Token)
+	return nil
+}
+
+func (s *Server) GetTokenFromSession(r *http.Request) (string, error) {
+	fmt.Println("getting token from session")
+	tk, ok := s.Session.Get(r.Context(), "token").(string)
+	if !ok {
+		return "", errors.New("error getting token from session")
+	}
+	return tk, nil
+}
+
+func (s *Server) AddUser(u User) error {
+	s.Memory.Lock()
+	defer s.Memory.Unlock()
+	return s.DB.Update(func(tx *bbolt.Tx) error {
+		b, err := tx.CreateBucketIfNotExists([]byte(*userBucket))
+		if err != nil {
+			return err
+		}
+		v, err := u.MarshalBinary()
+		if err != nil {
+			return err
+		}
+		return b.Put([]byte(u.Email), v)
+	})
+}
+
+func (s *Server) SaveToken(tk *Token) error {
+	s.Memory.Lock()
+	defer s.Memory.Unlock()
+	return s.DB.Update(func(tx *bbolt.Tx) error {
+		b, err := tx.CreateBucketIfNotExists([]byte(*tokenBucket))
+		if err != nil {
+			return err
+		}
+		v, err := tk.MarshalBinary()
+		if err != nil {
+			return err
+		}
+		return b.Put([]byte(tk.Token), v)
+	})
+}
+
+func (s *Server) GetToken(token string) (*Token, error) {
+	s.Memory.RLock()
+	defer s.Memory.RUnlock()
+	var tk Token
+	err := s.DB.View(func(tx *bbolt.Tx) error {
+		b, err := tx.CreateBucketIfNotExists([]byte(*tokenBucket))
+		if err != nil {
+			return err
+		}
+		v := b.Get([]byte(token))
+		if v == nil {
+			return nil
+		}
+		return tk.UnmarshalBinary(v)
+	})
+	return &tk, err
+}
