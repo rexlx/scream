@@ -8,6 +8,11 @@ import (
 )
 
 func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
+	_tk, _ := s.GetTokenFromSession(r)
+	if _tk != "" {
+		http.Error(w, "already logged in", http.StatusUnauthorized)
+		return
+	}
 	email := r.FormValue("username")
 	password := r.FormValue("password")
 	u, err := s.GetUserByEmail(email)
@@ -29,6 +34,7 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "error creating token", http.StatusInternalServerError)
 		return
 	}
+	tk.Email = u.Email
 	err = s.SaveToken(tk)
 	if err != nil {
 		http.Error(w, "error saving token", http.StatusInternalServerError)
@@ -52,11 +58,44 @@ func (s *Server) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rm *Room) MessageHandler(w http.ResponseWriter, r *http.Request) {
-	// send-message
+	message := r.FormValue("message")
+	// fmt.Println("got message", message)
+	fmt.Fprintf(w, "message: %s", message)
 }
 
 func (rm *Room) PrintMessageHandler(w http.ResponseWriter, r *http.Request) {
 	// send-message
+}
+
+func (rm *Room) ChatView(w http.ResponseWriter, r *http.Request) {
+	// fmt.Fprint(w, chatView)
+	fmt.Fprintf(w, chatView, rm.ID)
+}
+
+func (s *Server) MessageHandler(w http.ResponseWriter, r *http.Request) {
+	tk, err := s.GetTokenFromSession(r)
+	if err != nil {
+		http.Error(w, "error getting token", http.StatusInternalServerError)
+		return
+	}
+	token, err := s.GetToken(tk)
+	if err != nil {
+		http.Error(w, "error getting token", http.StatusInternalServerError)
+		return
+	}
+	message := r.FormValue("message")
+	roomid := r.FormValue("roomid")
+	fmt.Println("got message", message, token.Email)
+	// fmt.Println("got message", message)
+	out := `<div class="control is-expanded">
+          <input class="input is-outlined" type="text" name="message" placeholder="Type your message...">
+        </div>
+        <div class="control">
+          <button class="button is-info is-outlined" type="submit">Send</button>
+		  <small class="has-text-grey-light">message sent</small>
+        </div>`
+	s.Messagechan <- WSMessage{Time: time.Now(), Message: message, Email: token.Email, RoomID: roomid}
+	fmt.Fprint(w, out)
 }
 
 func (s *Server) AddUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -82,7 +121,7 @@ func (s *Server) AddUserView(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, AdUserHTML)
 }
 
-func (s *Server) RootHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) RoomHandler(w http.ResponseWriter, r *http.Request) {
 	roomName := getRoomNameFromURL(r.URL.Path)
 	if roomName == "" {
 		redirectToLogin(w, r)
@@ -92,15 +131,19 @@ func (s *Server) RootHandler(w http.ResponseWriter, r *http.Request) {
 	room, ok := s.Rooms[roomName]
 	s.Memory.RUnlock()
 	if !ok {
-		http.Error(w, "room not found", http.StatusNotFound)
-		return
+		room = NewRoom()
+		s.AddRoom(room)
+		// fmt.Println("room added", roomName, "redirecting", r.URL.Path)
+		// rm.Gateway.ServeHTTP(w, r)
 	}
-	room.Mux.ServeHTTP(w, r)
+	fmt.Println("room found", roomName, "redirecting", r.URL.Path, room.ID)
+	fmt.Fprintf(w, chatView, room.ID, room.ID)
 
 }
 
 func getRoomNameFromURL(url string) string {
 	parts := strings.Split(url, "/")
+	// fmt.Println(parts, len(parts))
 	if len(parts) >= 3 && parts[1] == "room" {
 		return parts[2]
 	}

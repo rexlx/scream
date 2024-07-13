@@ -29,6 +29,7 @@ var (
 )
 
 type Server struct {
+	*WSHandler
 	Logger  *log.Logger
 	DB      *bbolt.DB
 	Gateway *http.ServeMux
@@ -69,24 +70,37 @@ func NewServer() *Server {
 		log.Fatal(err)
 	}
 	rooms := make(map[string]*Room)
-	s := &Server{
-		Logger:  myLogger,
-		DB:      db,
-		Gateway: http.NewServeMux(),
-		Memory:  mem,
-		Context: nil,
-		Rooms:   rooms,
-		URL:     *url,
-		Session: sessionMgr,
+
+	wsh := &WSHandler{
+		Stop:        make(chan struct{}),
+		Conn:        nil,
+		Memory:      &sync.RWMutex{},
+		Messagechan: make(chan WSMessage, 20),
 	}
-	s.Gateway.HandleFunc("/", s.RootHandler)
+
+	s := &Server{
+		WSHandler: wsh,
+		Logger:    myLogger,
+		DB:        db,
+		Gateway:   http.NewServeMux(),
+		Memory:    mem,
+		Context:   nil,
+		Rooms:     rooms,
+		URL:       *url,
+		Session:   sessionMgr,
+	}
+	// s.Gateway.HandleFunc("/", s.RoomHandler)
 	s.Gateway.HandleFunc("/access", s.LoginView)
 	s.Gateway.HandleFunc("/login", s.LoginHandler)
 	s.Gateway.HandleFunc("/logout", s.LogoutHandler)
 	s.Gateway.HandleFunc("/add-user", s.AddUserView)
 	s.Gateway.HandleFunc("/adduser", s.AddUserHandler)
+	s.Gateway.HandleFunc("/send-message", s.MessageHandler)
+	s.Gateway.Handle("/ws/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		s.ServeWS(rooms, w, r)
+	}))
 
-	s.Gateway.Handle("/chat", s.ValidateToken(http.HandlerFunc(s.RootHandler)))
+	s.Gateway.Handle("/room/", s.ValidateToken(http.HandlerFunc(s.RoomHandler)))
 	return s
 }
 
@@ -136,6 +150,7 @@ func (s *Server) GetUserByEmail(email string) (User, error) {
 	err := s.DB.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(*userBucket))
 		v := b.Get([]byte(email))
+		// fmt.Println(*userBucket, email)
 		if v == nil {
 			fmt.Println("user not found")
 			return nil
@@ -152,7 +167,7 @@ func (s *Server) AddTokenToSession(r *http.Request, w http.ResponseWriter, tk *T
 }
 
 func (s *Server) GetTokenFromSession(r *http.Request) (string, error) {
-	fmt.Println("getting token from session")
+	// fmt.Println("getting token from session")
 	tk, ok := s.Session.Get(r.Context(), "token").(string)
 	if !ok {
 		return "", errors.New("error getting token from session")
@@ -197,10 +212,11 @@ func (s *Server) GetToken(token string) (*Token, error) {
 	defer s.Memory.RUnlock()
 	var tk Token
 	err := s.DB.View(func(tx *bbolt.Tx) error {
-		b, err := tx.CreateBucketIfNotExists([]byte(*tokenBucket))
-		if err != nil {
-			return err
-		}
+		// b, err := tx.CreateBucketIfNotExists([]byte(*tokenBucket))
+		// if err != nil {
+		// 	return err
+		// }
+		b := tx.Bucket([]byte(*tokenBucket))
 		v := b.Get([]byte(token))
 		if v == nil {
 			return nil
@@ -208,4 +224,10 @@ func (s *Server) GetToken(token string) (*Token, error) {
 		return tk.UnmarshalBinary(v)
 	})
 	return &tk, err
+}
+
+func (s *Server) AddRoom(r *Room) {
+	s.Memory.Lock()
+	defer s.Memory.Unlock()
+	s.Rooms[r.ID] = r
 }
