@@ -25,7 +25,8 @@ var (
 	tokenBucket = flag.String("token-bucket", "tokens", "token bucket")
 	dbName      = flag.String("db-name", "chat.db", "database name")
 	logFile     = flag.String("log-file", "chat.log", "log file")
-	url         = flag.String("url", "http://localhost:8080", "url")
+	url         = flag.String("url", ":8080", "url")
+	mLimit      = flag.Int("message-limit", 100, "message limit")
 )
 
 type Server struct {
@@ -57,7 +58,7 @@ func NewServer() *Server {
 	sessionMgr.Cookie.Persist = true
 	sessionMgr.Cookie.Name = "token"
 	sessionMgr.Cookie.SameSite = http.SameSiteLaxMode
-	sessionMgr.Cookie.Secure = true
+	// sessionMgr.Cookie.Secure = true
 	sessionMgr.Cookie.HttpOnly = true
 	fh, err := os.OpenFile(*logFile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
@@ -95,12 +96,14 @@ func NewServer() *Server {
 	s.Gateway.HandleFunc("/logout", s.LogoutHandler)
 	s.Gateway.HandleFunc("/add-user", s.AddUserView)
 	s.Gateway.HandleFunc("/adduser", s.AddUserHandler)
-	s.Gateway.HandleFunc("/send-message", s.MessageHandler)
+	// s.Gateway.HandleFunc("/messagehist", s.MessageHistoryHandler)
+	s.Gateway.Handle("/send-message", s.ValidateToken(http.HandlerFunc(s.MessageHandler)))
 	s.Gateway.Handle("/ws/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		s.ServeWS(rooms, w, r)
 	}))
 
 	s.Gateway.Handle("/room/", s.ValidateToken(http.HandlerFunc(s.RoomHandler)))
+	s.Gateway.Handle("/messagehist/", s.ValidateToken(http.HandlerFunc(s.MessageHistoryHandler)))
 	return s
 }
 
@@ -150,7 +153,6 @@ func (s *Server) GetUserByEmail(email string) (User, error) {
 	err := s.DB.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(*userBucket))
 		v := b.Get([]byte(email))
-		// fmt.Println(*userBucket, email)
 		if v == nil {
 			fmt.Println("user not found")
 			return nil
@@ -167,7 +169,6 @@ func (s *Server) AddTokenToSession(r *http.Request, w http.ResponseWriter, tk *T
 }
 
 func (s *Server) GetTokenFromSession(r *http.Request) (string, error) {
-	// fmt.Println("getting token from session")
 	tk, ok := s.Session.Get(r.Context(), "token").(string)
 	if !ok {
 		return "", errors.New("error getting token from session")

@@ -39,7 +39,7 @@ func (wsh *WSHandler) Read() {
 			break
 		}
 		m := WSMessage{Time: time.Now(), Message: string(message)}
-		fmt.Println(m)
+		// fmt.Println(m)
 		wsh.Messagechan <- m
 	}
 }
@@ -56,9 +56,9 @@ dasWriter:
 				continue
 			}
 			room.AddMessage(message)
-			room.Memory.RLock()
 			out := room.GetMesssages()
-			fmt.Println("writing message", out)
+			room.Memory.RLock()
+			// fmt.Println("writing message", out)
 			for _, conn := range room.Connections {
 				// if conn.Conn == wsh.Conn {
 				// 	fmt.Println("wont write to self")

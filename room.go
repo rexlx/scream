@@ -9,11 +9,13 @@ import (
 )
 
 type Room struct {
-	Connections []*WSHandler
-	Memory      *sync.RWMutex
-	Messages    []WSMessage
-	ID          string
-	Gateway     *http.ServeMux
+	Name         string
+	MessageLimit int
+	ID           string
+	Messages     []WSMessage
+	Connections  []*WSHandler
+	Memory       *sync.RWMutex
+	Gateway      *http.ServeMux
 }
 
 type EnhanchedRequest struct {
@@ -21,13 +23,15 @@ type EnhanchedRequest struct {
 	*http.Request
 }
 
-func NewRoom() *Room {
+func NewRoom(name string, mLimit int) *Room {
 	uid := uuid.New().String()
 	mem := &sync.RWMutex{}
 	r := &Room{
-		ID:      uid,
-		Gateway: http.NewServeMux(),
-		Memory:  mem,
+		Name:         name,
+		MessageLimit: mLimit,
+		ID:           uid,
+		Gateway:      http.NewServeMux(),
+		Memory:       mem,
 	}
 	r.Gateway.HandleFunc("/send-message", r.MessageHandler)
 	r.Gateway.HandleFunc("/messages", r.PrintMessageHandler)
@@ -40,6 +44,9 @@ func NewRoom() *Room {
 func (rm *Room) AddMessage(msg WSMessage) {
 	rm.Memory.Lock()
 	defer rm.Memory.Unlock()
+	if len(rm.Messages) >= rm.MessageLimit {
+		rm.Messages = rm.Messages[1:]
+	}
 	rm.Messages = append(rm.Messages, msg)
 }
 
@@ -60,7 +67,6 @@ func (rm *Room) GetMesssages() string {
 func (rm *Room) AddConnection(conn *WSHandler) {
 	rm.Memory.Lock()
 	defer rm.Memory.Unlock()
-	fmt.Println("adding connection", conn)
 	rm.Connections = append(rm.Connections, conn)
 }
 

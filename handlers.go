@@ -59,7 +59,6 @@ func (s *Server) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 
 func (rm *Room) MessageHandler(w http.ResponseWriter, r *http.Request) {
 	message := r.FormValue("message")
-	// fmt.Println("got message", message)
 	fmt.Fprintf(w, "message: %s", message)
 }
 
@@ -85,8 +84,6 @@ func (s *Server) MessageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	message := r.FormValue("message")
 	roomid := r.FormValue("roomid")
-	fmt.Println("got message", message, token.Email)
-	// fmt.Println("got message", message)
 	out := `<div class="control is-expanded">
           <input class="input is-outlined" type="text" name="message" placeholder="Type your message...">
         </div>
@@ -127,23 +124,48 @@ func (s *Server) RoomHandler(w http.ResponseWriter, r *http.Request) {
 		redirectToLogin(w, r)
 		return
 	}
-	s.Memory.RLock()
-	room, ok := s.Rooms[roomName]
-	s.Memory.RUnlock()
-	if !ok {
-		room = NewRoom()
+	room, err := s.GetRoomByName(roomName)
+	if err != nil {
+		room = NewRoom(roomName, *mLimit)
 		s.AddRoom(room)
-		// fmt.Println("room added", roomName, "redirecting", r.URL.Path)
-		// rm.Gateway.ServeHTTP(w, r)
 	}
-	fmt.Println("room found", roomName, "redirecting", r.URL.Path, room.ID)
-	fmt.Fprintf(w, chatView, room.ID, room.ID)
 
+	fmt.Fprintf(w, chatView, room.ID, room.ID, room.ID)
+
+}
+
+func (s *Server) MessageHistoryHandler(w http.ResponseWriter, r *http.Request) {
+	parts := strings.Split(r.URL.Path, "/")
+	fmt.Println(parts)
+	if len(parts) < 3 {
+		http.Error(w, "room not found", http.StatusNotFound)
+		return
+	}
+	roomName := parts[2]
+	fmt.Println("roomName", roomName)
+	room, ok := s.Rooms[roomName]
+	if !ok {
+		http.Error(w, "room not found", http.StatusNotFound)
+		return
+	}
+	fmt.Println(room.GetMesssages())
+	fmt.Fprint(w, room.GetMesssages())
+}
+
+func (s *Server) GetRoomByName(name string) (*Room, error) {
+	s.Memory.RLock()
+	defer s.Memory.RUnlock()
+	for k, v := range s.Rooms {
+		if v.Name == name {
+			return s.Rooms[k], nil
+		}
+
+	}
+	return nil, fmt.Errorf("GetRoomByName: room not found")
 }
 
 func getRoomNameFromURL(url string) string {
 	parts := strings.Split(url, "/")
-	// fmt.Println(parts, len(parts))
 	if len(parts) >= 3 && parts[1] == "room" {
 		return parts[2]
 	}
