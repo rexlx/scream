@@ -123,9 +123,9 @@ var chatView = `<!DOCTYPE html>
       <aside class="menu">
         <p class="menu-label">Menu</p>
         <ul class="menu-list">
-          <li><a>Settings</a></li>
-          <li><a>Profile</a></li>
-          <li><a hx-post="/logout" hx-swap="outerHTML">Logout</a></li>
+          <li><a class="has-text-link">Settings</a></li>
+          <li><a href="/profile" hx-boost="true" class="has-text-link">Profile</a></li>
+          <li><a hx-post="/logout" hx-swap="outerHTML" class="has-text-link">Logout</a></li>
         </ul>
       </aside>
     </div>
@@ -148,6 +148,57 @@ var chatView = `<!DOCTYPE html>
   </div>
 </div>
 
+</body>
+</html>
+`
+var profileView = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Edit Profile</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <script src="https://unpkg.com/htmx.org@1.9.5"></script>
+</head>
+<body class="has-background-dark">
+  <section class="section">
+    <div class="container">
+      <h1 class="title has-text-white">Edit Profile</h1>
+
+      <form hx-post="/update-profile" class="box has-background-dark" hx-trigger="submit">
+        <div class="field">
+          <label class="label has-text-white">Email</label>
+          <div class="control">
+            <input class="input" type="email" name="email" placeholder="you@example.com" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label has-text-white">First Name</label>
+          <div class="control">
+            <input class="input" type="text" name="first_name" placeholder="John">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label has-text-white">Last Name</label>
+          <div class="control">
+            <input class="input" type="text" name="last_name" placeholder="Doe">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label has-text-white">Password</label>
+          <div class="control">
+            <input class="input" type="password" name="password" placeholder="*********">
+          </div>
+        </div>
+
+        <button type="submit" class="button is-primary is-link">Save Changes</button>
+        <input type="hidden" name="userid" value="%v">
+      </form>
+    </div>
+  </section>
 </body>
 </html>
 `

@@ -42,6 +42,7 @@ type Server struct {
 }
 
 type Token struct {
+	Handle    string
 	ID        string
 	Email     string
 	UserID    string
@@ -96,6 +97,8 @@ func NewServer() *Server {
 	s.Gateway.HandleFunc("/logout", s.LogoutHandler)
 	s.Gateway.HandleFunc("/add-user", s.AddUserView)
 	s.Gateway.HandleFunc("/adduser", s.AddUserHandler)
+	s.Gateway.HandleFunc("/update-profile", s.ProfileHandler)
+	s.Gateway.HandleFunc("/profile", s.ProfileView)
 	// s.Gateway.HandleFunc("/messagehist", s.MessageHistoryHandler)
 	s.Gateway.Handle("/send-message", s.ValidateToken(http.HandlerFunc(s.MessageHandler)))
 	s.Gateway.Handle("/ws/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

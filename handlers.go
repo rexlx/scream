@@ -29,12 +29,14 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid password", http.StatusUnauthorized)
 		return
 	}
+	u.updateHandle()
 	tk, err := u.Token.CreateToken(u.ID, time.Hour)
 	if err != nil {
 		http.Error(w, "error creating token", http.StatusInternalServerError)
 		return
 	}
 	tk.Email = u.Email
+	tk.Handle = u.Handle
 	err = s.SaveToken(tk)
 	if err != nil {
 		http.Error(w, "error saving token", http.StatusInternalServerError)
@@ -91,7 +93,7 @@ func (s *Server) MessageHandler(w http.ResponseWriter, r *http.Request) {
           <button class="button is-info is-outlined" type="submit">Send</button>
 		  <small class="has-text-grey-light">message sent</small>
         </div>`
-	s.Messagechan <- WSMessage{Time: time.Now(), Message: message, Email: token.Email, RoomID: roomid}
+	s.Messagechan <- WSMessage{Time: time.Now(), Message: message, Email: token.Handle, RoomID: roomid}
 	fmt.Fprint(w, out)
 }
 
@@ -136,19 +138,17 @@ func (s *Server) RoomHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) MessageHistoryHandler(w http.ResponseWriter, r *http.Request) {
 	parts := strings.Split(r.URL.Path, "/")
-	fmt.Println(parts)
 	if len(parts) < 3 {
 		http.Error(w, "room not found", http.StatusNotFound)
 		return
 	}
 	roomName := parts[2]
-	fmt.Println("roomName", roomName)
 	room, ok := s.Rooms[roomName]
 	if !ok {
 		http.Error(w, "room not found", http.StatusNotFound)
 		return
 	}
-	fmt.Println(room.GetMesssages())
+	// fmt.Println(room.GetMesssages())
 	fmt.Fprint(w, room.GetMesssages())
 }
 
@@ -162,6 +162,43 @@ func (s *Server) GetRoomByName(name string) (*Room, error) {
 
 	}
 	return nil, fmt.Errorf("GetRoomByName: room not found")
+}
+
+func (s *Server) ProfileView(w http.ResponseWriter, r *http.Request) {
+	tk, err := s.GetTokenFromSession(r)
+	if err != nil {
+		http.Error(w, "error getting token", http.StatusInternalServerError)
+		return
+	}
+	token, err := s.GetToken(tk)
+	if err != nil {
+		http.Error(w, "error getting token", http.StatusInternalServerError)
+		return
+	}
+	fmt.Fprintf(w, profileView, token.Email)
+}
+
+func (s *Server) ProfileHandler(w http.ResponseWriter, r *http.Request) {
+	userid := r.FormValue("userid")
+	email := r.FormValue("email")
+	// password := r.FormValue("password")
+	fname := r.FormValue("first_name")
+	lname := r.FormValue("last_name")
+	u, err := s.GetUserByEmail(userid)
+	if err != nil {
+		http.Error(w, "error getting user", http.StatusInternalServerError)
+		return
+	}
+	u.FirstName = fname
+	u.LastName = lname
+	u.Email = email
+	u.updateHandle()
+	err = s.AddUser(u)
+	if err != nil {
+		http.Error(w, "error adding user", http.StatusInternalServerError)
+		return
+	}
+	fmt.Fprint(w, "user updated")
 }
 
 func getRoomNameFromURL(url string) string {

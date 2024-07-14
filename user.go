@@ -10,6 +10,7 @@ import (
 
 type User struct {
 	ID        string    `json:"id"`
+	Handle    string    `json:"handle"`
 	Email     string    `json:"email"`
 	FirstName string    `json:"first_name,omitempty"`
 	LastName  string    `json:"last_name,omitempty"`
@@ -26,6 +27,13 @@ func (u *User) MarshalBinary() ([]byte, error) {
 
 func (u *User) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, u)
+}
+
+func (u *User) updateHandle() {
+	u.Handle = u.FirstName + u.LastName
+	if u.Handle == "" {
+		u.Handle = u.Email
+	}
 }
 
 func (u *User) PasswordMatches(input string) (bool, error) {
