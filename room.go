@@ -51,14 +51,17 @@ func (rm *Room) AddMessage(msg WSMessage) {
 }
 
 func (rm *Room) GetMesssages() string {
-	out := `<div class="box has-background-dark" id="chat-box">
+	out := `<div class="box has-background-black" id="chat-box">
 	  %v
         </div>`
 	rm.Memory.RLock()
 	defer rm.Memory.RUnlock()
 	messages := ""
 	for _, msg := range rm.Messages {
-		messages += fmt.Sprintf(`<em class="mb2 has-text-link">%v</em>:  <p class="mb2">%v</p>`, msg.Email, msg.Message)
+		messages += fmt.Sprintf(`<div class="card has-background-black"><em class="mb2 has-text-white">%v:</em>  <p class="has-text-info">%v</p></div>`, msg.Email, msg.Message)
+	}
+	if messages == "" {
+		messages = `<em class="has-text-white">server bot</em>:  <p class="has-text-link">you're the first one here! (maybe)</p>`
 	}
 	out = fmt.Sprintf(out, messages)
 	return out

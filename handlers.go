@@ -10,45 +10,48 @@ import (
 func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	_tk, _ := s.GetTokenFromSession(r)
 	if _tk != "" {
-		http.Error(w, "already logged in", http.StatusUnauthorized)
+		fmt.Fprintf(w, authNotification, "is-warning", "already logged in")
 		return
 	}
 	email := r.FormValue("username")
 	password := r.FormValue("password")
 	u, err := s.GetUserByEmail(email)
 	if err != nil {
-		http.Error(w, "error getting user", http.StatusInternalServerError)
+		fmt.Println("user not found")
+		fmt.Fprintf(w, authNotification, "is-danger", "that straight up did not work")
 		return
 	}
 	ok, err := u.PasswordMatches(password)
 	if err != nil {
-		http.Error(w, "error comparing passwords", http.StatusInternalServerError)
+		fmt.Println("error checking password")
+		fmt.Fprintf(w, authNotification, "is-danger", "that straight up did not work")
 		return
 	}
 	if !ok {
-		http.Error(w, "invalid password", http.StatusUnauthorized)
+		fmt.Println("password does not match")
+		fmt.Fprintf(w, authNotification, "is-danger", "that straight up did not work")
 		return
 	}
 	u.updateHandle()
 	tk, err := u.Token.CreateToken(u.ID, time.Hour)
 	if err != nil {
-		http.Error(w, "error creating token", http.StatusInternalServerError)
+		fmt.Fprintf(w, authNotification, "is-danger", "an error occured when creating token...")
 		return
 	}
 	tk.Email = u.Email
 	tk.Handle = u.Handle
 	err = s.SaveToken(tk)
 	if err != nil {
-		http.Error(w, "error saving token", http.StatusInternalServerError)
+		fmt.Fprintf(w, authNotification, "is-danger", "an error occured when saving token...")
 		return
 	}
 	err = s.AddTokenToSession(r, w, tk)
 	if err != nil {
-		http.Error(w, "error adding token to session", http.StatusInternalServerError)
+		fmt.Fprintf(w, authNotification, "is-danger", "an error occured when adding token to session...")
 		return
 	}
-	successDiv := fmt.Sprintf("<div>%s</div>", "login successful")
-	fmt.Fprint(w, successDiv)
+	// successDiv := fmt.Sprintf("<div>%s</div>", "login successful")
+	fmt.Fprintf(w, authNotification, "is-success", "login successful")
 }
 
 func (s *Server) LoginView(w http.ResponseWriter, r *http.Request) {
@@ -57,6 +60,10 @@ func (s *Server) LoginView(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	// /logout
+}
+
+func (s *Server) clearAuthNotificationHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, clearAuthNotification)
 }
 
 func (rm *Room) MessageHandler(w http.ResponseWriter, r *http.Request) {

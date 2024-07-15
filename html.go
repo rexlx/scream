@@ -1,15 +1,20 @@
 package main
 
+var authNotification = `<div class="notification %v" id="notty">
+  <button class="delete" hx-get="/can" hx-trigger="click" hx-target="#notty" hx-swap="outerHTML"></button>
+  %v
+</div>`
+
 var AdUserHTML = `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Add User</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-    <script src="https://unpkg.com/htmx.org@1.9.5"></script> <style>
+    <title>add user</title>
+    <link rel="stylesheet" href="/static/bulma.min.css">
+    <script src="/static/htmx.min.js"></script> <style>
         body {
-            background-color: #363636; 
+            background-color: #0b141c; 
         }
     </style>
 </head>
@@ -18,8 +23,8 @@ var AdUserHTML = `<!DOCTYPE html>
 <div class="container">
     <div class="columns is-centered">
         <div class="column is-half">
-            <div class="box has-background-dark">
-                <h2 class="title is-2 has-text-white">Add User</h2>
+            <div class="box has-background-black">
+                <h2 class="title is-2 has-text-info">add user</h2>
 
                 <form hx-post="/adduser" hx-swap="outerHTML">  
                     <div class="field">
@@ -36,7 +41,7 @@ var AdUserHTML = `<!DOCTYPE html>
                         </div>
                     </div>
 
-                    <button class="button is-primary is-outlined" type="submit">Add User</button> 
+                    <button class="button is-info is-outlined" type="submit">add user</button> 
                 </form>
             </div>
         </div>
@@ -52,12 +57,12 @@ var loginView = `<!DOCTYPE html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Login</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-  <script src="https://unpkg.com/htmx.org@1.9.5"></script>
+  <title>login</title>
+  <link rel="stylesheet" href="/static/bulma.min.css">
+  <script src="/static/htmx.min.js"></script>
   <style>
     body {
-      background-color: #363636; 
+      background-color: #0b141c; 
     }
   </style>
 </head>
@@ -66,25 +71,25 @@ var loginView = `<!DOCTYPE html>
 <div class="container">
   <div class="columns is-centered">
     <div class="column is-half">
-      <div class="box has-background-dark">
-        <h2 class="title is-2 has-text-white">Login</h2>
+      <div class="box has-background-black">
+        <h2 class="title is-2 has-text-info">login</h2>
 
-        <form hx-post="/login" hx-swap="outerHTML">
+        <form hx-post="/login" hx-swap="outerHTML" class="has-background-black">
           <div class="field">
-            <label class="label has-text-white">Username</label>
+            <label class="label has-text-white">username</label>
             <div class="control">
               <input class="input is-outlined" type="text" name="username" placeholder="Enter your username">
             </div>
           </div>
 
           <div class="field">
-            <label class="label has-text-white">Password</label>
+            <label class="label has-text-white">password</label>
             <div class="control">
               <input class="input is-outlined" type="password" name="password" placeholder="Enter your password">
             </div>
           </div>
 
-          <button class="button is-primary is-outlined" type="submit">Login</button>
+          <button class="button is-info is-outlined" type="submit">login</button>
         </form>
       </div>
     </div>
@@ -100,13 +105,13 @@ var chatView = `<!DOCTYPE html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Chat Interface</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-  <script src="https://unpkg.com/htmx.org@1.9.5"></script>
+  <title>screamery</title>
+  <link rel="stylesheet" href="/static/bulma.min.css">
+  <script src="/static/htmx.min.js"></script>
   <script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>  </style>
   <style>
     body {
-      background-color: #363636; /* Dark background */
+      background-color: #0b141c; /* Dark blue background*/
     }
       @media (max-width: 768px) { 
       .column.is-one-quarter {
@@ -121,11 +126,10 @@ var chatView = `<!DOCTYPE html>
   <div class="columns is-mobile">
     <div class="column is-one-quarter">
       <aside class="menu">
-        <p class="menu-label">Menu</p>
+        <p class="menu-label">menu</p>
         <ul class="menu-list">
-          <li><a class="has-text-link">Settings</a></li>
-          <li><a href="/profile" hx-boost="true" class="has-text-link">Profile</a></li>
-          <li><a hx-post="/logout" hx-swap="outerHTML" class="has-text-link">Logout</a></li>
+          <li><a href="/profile" hx-boost="true" class="has-text-info">profile</a></li>
+          <li><a hx-post="/logout" hx-swap="outerHTML" class="has-text-info">logout</a></li>
         </ul>
       </aside>
     </div>
@@ -140,7 +144,7 @@ var chatView = `<!DOCTYPE html>
           <input class="input is-outlined" type="text" name="message" placeholder="Type your message...">
         </div>
         <div class="control">
-          <button class="button is-info is-outlined" type="submit">Send</button>
+          <button class="button is-info is-outlined" type="submit">send</button>
         </div>
         <input type="hidden" name="roomid" value="%v">
       </form>
@@ -156,16 +160,21 @@ var profileView = `<!DOCTYPE html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Edit Profile</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-  <script src="https://unpkg.com/htmx.org@1.9.5"></script>
+  <title>edit profile</title>
+  <link rel="stylesheet" href="/static/bulma.min.css">
+  <script src="/static/htmx.min.js"></script>
+  <style>
+  body {
+      background-color: #0b141c; /* Dark background */
+    }
+  </style>
 </head>
-<body class="has-background-dark">
+<body class="has-background-black">
   <section class="section">
     <div class="container">
-      <h1 class="title has-text-white">Edit Profile</h1>
+      <h1 class="title has-text-info">edit profile</h1>
 
-      <form hx-post="/update-profile" class="box has-background-dark" hx-trigger="submit">
+      <form hx-post="/update-profile" class="box has-background-black" hx-trigger="submit">
         <div class="field">
           <label class="label has-text-white">Email</label>
           <div class="control">
@@ -194,7 +203,7 @@ var profileView = `<!DOCTYPE html>
           </div>
         </div>
 
-        <button type="submit" class="button is-primary is-link">Save Changes</button>
+        <button type="submit" class="button is-info is-outlined">save changes</button>
         <input type="hidden" name="userid" value="%v">
       </form>
     </div>
@@ -202,3 +211,20 @@ var profileView = `<!DOCTYPE html>
 </body>
 </html>
 `
+var clearAuthNotification = `<form hx-post="/login" hx-swap="outerHTML" class="has-background-black">
+          <div class="field">
+            <label class="label has-text-white">username</label>
+            <div class="control">
+              <input class="input is-outlined" type="text" name="username" placeholder="Enter your username">
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="label has-text-white">password</label>
+            <div class="control">
+              <input class="input is-outlined" type="password" name="password" placeholder="Enter your password">
+            </div>
+          </div>
+
+          <button class="button is-info is-outlined" type="submit">login</button>
+        </form>`

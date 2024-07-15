@@ -98,7 +98,9 @@ func NewServer() *Server {
 	s.Gateway.HandleFunc("/add-user", s.AddUserView)
 	s.Gateway.HandleFunc("/adduser", s.AddUserHandler)
 	s.Gateway.HandleFunc("/update-profile", s.ProfileHandler)
+	s.Gateway.HandleFunc("/can", s.clearAuthNotificationHandler)
 	s.Gateway.HandleFunc("/profile", s.ProfileView)
+	s.Gateway.Handle("/static/", http.StripPrefix("/static/", s.FileServer()))
 	// s.Gateway.HandleFunc("/messagehist", s.MessageHistoryHandler)
 	s.Gateway.Handle("/send-message", s.ValidateToken(http.HandlerFunc(s.MessageHandler)))
 	s.Gateway.Handle("/ws/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -169,6 +171,10 @@ func (s *Server) GetUserByEmail(email string) (User, error) {
 func (s *Server) AddTokenToSession(r *http.Request, w http.ResponseWriter, tk *Token) error {
 	s.Session.Put(r.Context(), "token", tk.Token)
 	return nil
+}
+
+func (s *Server) FileServer() http.Handler {
+	return http.FileServer(http.Dir("./static"))
 }
 
 func (s *Server) GetTokenFromSession(r *http.Request) (string, error) {
