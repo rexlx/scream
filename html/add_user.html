@@ -3,11 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Add User</title>
+    <title>add user</title>
     <link rel="stylesheet" href="/static/bulma.min.css">
     <script src="/static/htmx.min.js"></script> <style>
         body {
-            background-color: #363636; 
+            background-color: #0b141c; 
         }
     </style>
 </head>
@@ -16,8 +16,8 @@
 <div class="container">
     <div class="columns is-centered">
         <div class="column is-half">
-            <div class="box has-background-dark">
-                <h2 class="title is-2 has-text-white">Add User</h2>
+            <div class="box has-background-black">
+                <h2 class="title is-2 has-text-info">add user</h2>
 
                 <form hx-post="/adduser" hx-swap="outerHTML">  
                     <div class="field">
@@ -34,7 +34,7 @@
                         </div>
                     </div>
 
-                    <button class="button is-primary is-outlined" type="submit">Add User</button> 
+                    <button class="button is-info is-outlined" type="submit">add user</button> 
                 </form>
             </div>
         </div>
