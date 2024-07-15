@@ -17,24 +17,25 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	u, err := s.GetUserByEmail(email)
 	if err != nil {
-		fmt.Println("user not found")
+		s.Logger.Println("user not found", email)
 		fmt.Fprintf(w, authNotification, "is-danger", "that straight up did not work")
 		return
 	}
 	ok, err := u.PasswordMatches(password)
 	if err != nil {
-		fmt.Println("error checking password")
+		s.Logger.Println("error checking password", err)
 		fmt.Fprintf(w, authNotification, "is-danger", "that straight up did not work")
 		return
 	}
 	if !ok {
-		fmt.Println("password does not match")
+		s.Logger.Println("password does not match", email)
 		fmt.Fprintf(w, authNotification, "is-danger", "that straight up did not work")
 		return
 	}
 	u.updateHandle()
 	tk, err := u.Token.CreateToken(u.ID, time.Hour)
 	if err != nil {
+		s.Logger.Println("error creating token", err)
 		fmt.Fprintf(w, authNotification, "is-danger", "an error occured when creating token...")
 		return
 	}
@@ -42,15 +43,17 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	tk.Handle = u.Handle
 	err = s.SaveToken(tk)
 	if err != nil {
+		s.Logger.Println("error saving token", err)
 		fmt.Fprintf(w, authNotification, "is-danger", "an error occured when saving token...")
 		return
 	}
 	err = s.AddTokenToSession(r, w, tk)
 	if err != nil {
+		s.Logger.Println("error adding token to session", err)
 		fmt.Fprintf(w, authNotification, "is-danger", "an error occured when adding token to session...")
 		return
 	}
-	// successDiv := fmt.Sprintf("<div>%s</div>", "login successful")
+	s.Logger.Println("login successful", u.Email)
 	fmt.Fprintf(w, authNotification, "is-success", "login successful")
 	// theirRoom := fmt.Sprintf("/room/%s", u.ID)
 	// w.Header().Set("HX-Redirect", theirRoom)

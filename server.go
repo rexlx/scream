@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"flag"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -159,7 +158,7 @@ func (s *Server) GetUserByEmail(email string) (User, error) {
 		b := tx.Bucket([]byte(*userBucket))
 		v := b.Get([]byte(email))
 		if v == nil {
-			fmt.Println("user not found")
+			s.Logger.Println("user not found")
 			return nil
 		}
 

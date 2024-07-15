@@ -38,9 +38,7 @@ func (wsh *WSHandler) Read() {
 		if err != nil {
 			break
 		}
-		m := WSMessage{Time: time.Now(), Message: string(message)}
-		// fmt.Println(m)
-		wsh.Messagechan <- m
+		wsh.Messagechan <- WSMessage{Time: time.Now(), Message: string(message)}
 	}
 }
 
@@ -53,23 +51,18 @@ dasWriter:
 			// fmt.Printf("got message %+v", message)
 			room, ok := rooms[message.RoomID]
 			if !ok {
-				fmt.Println("room not found", message.RoomID)
+				fmt.Println("WSHandler.Write: room not found", message.RoomID)
 				continue
 			}
 			room.AddMessage(message)
-			out := room.GetMesssages()
 			room.Memory.RLock()
-			// fmt.Println("writing message", out)
-			for _, conn := range room.Connections {
-				// if conn.Conn == wsh.Conn {
-				// 	fmt.Println("wont write to self")
-				// 	continue
-				// }
-				// fmt.Println("writing to conn", conn.Conn)
-				err := conn.Conn.WriteMessage(websocket.TextMessage, []byte(out))
+			out := room.GetMesssages()
+			for conn := range room.Connections {
+				err := conn.WriteMessage(websocket.TextMessage, []byte(out))
 				if err != nil {
-					fmt.Println("error writing message", err)
-					continue
+					fmt.Println("WSHandler.Write: error writing message", err)
+					conn.Close()
+					delete(room.Connections, conn)
 				}
 			}
 			room.Memory.RUnlock()
@@ -93,7 +86,6 @@ func (wsh *WSHandler) ServeWS(rooms map[string]*Room, w http.ResponseWriter, r *
 		http.Error(w, "room id not found", http.StatusBadRequest)
 		return
 	}
-	room.AddConnection(wsh)
 
 	fmt.Println("serving ws")
 	conn, err := upgrader.Upgrade(w, r, nil)
@@ -102,6 +94,8 @@ func (wsh *WSHandler) ServeWS(rooms map[string]*Room, w http.ResponseWriter, r *
 		return
 	}
 	wsh.Conn = conn
+
+	room.AddConnection(wsh)
 
 	go wsh.Write(rooms)
 

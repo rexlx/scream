@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -10,22 +9,22 @@ func (s *Server) ValidateToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token, err := s.GetTokenFromSession(r)
 		if err != nil {
-			fmt.Println("error getting token from session")
+			s.Logger.Println("error getting token from session", err)
 			http.Error(w, "error getting token from session", http.StatusUnauthorized)
 			return
 		}
 		tk, err := s.GetToken(token)
 		if err != nil {
-			fmt.Println("error getting token", token)
+			s.Logger.Println("error getting token", token)
 			http.Error(w, "error getting token", http.StatusUnauthorized)
 			return
 		}
 		if tk.ExpiresAt.Before(time.Now()) {
-			fmt.Println("token expired")
+			s.Logger.Println("token expired", tk.ExpiresAt)
 			http.Error(w, "token expired", http.StatusUnauthorized)
 			return
 		}
-		fmt.Println("token valid")
+		s.Logger.Println("token valid")
 		next.ServeHTTP(w, r)
 	})
 }

@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
 )
 
 type Room struct {
@@ -13,7 +14,7 @@ type Room struct {
 	MessageLimit int
 	ID           string
 	Messages     []WSMessage
-	Connections  []*WSHandler
+	Connections  map[*websocket.Conn]bool
 	Memory       *sync.RWMutex
 	Gateway      *http.ServeMux
 }
@@ -26,7 +27,9 @@ type EnhanchedRequest struct {
 func NewRoom(name string, mLimit int) *Room {
 	uid := uuid.New().String()
 	mem := &sync.RWMutex{}
+	conns := make(map[*websocket.Conn]bool)
 	r := &Room{
+		Connections:  conns,
 		Name:         name,
 		MessageLimit: mLimit,
 		ID:           uid,
@@ -70,7 +73,7 @@ func (rm *Room) GetMesssages() string {
 func (rm *Room) AddConnection(conn *WSHandler) {
 	rm.Memory.Lock()
 	defer rm.Memory.Unlock()
-	rm.Connections = append(rm.Connections, conn)
+	rm.Connections[conn.Conn] = true
 }
 
 func (rm *Room) MessagesHandler(w http.ResponseWriter, r *http.Request) {

@@ -135,7 +135,7 @@ var chatView = `<!DOCTYPE html>
     </div>
 
     <div class="column">
-      <div class="box has-background-black" hx-ext="ws" hx-trigger="load, every 1s" ws-connect="/ws/%v" hx-target="#chat-box" hx-swap="outerHTML">
+      <div class="box has-background-black" hx-ext="ws" ws-connect="/ws/%v" hx-target="#chat-box" hx-swap="outerHTML" >
       <div id="chat-box" hx-get="/messagehist/%v" hx-trigger="load"></div>
         </div>
 
