@@ -173,6 +173,20 @@ func (s *Server) AddTokenToSession(r *http.Request, w http.ResponseWriter, tk *T
 	return nil
 }
 
+func (s *Server) DeleteToken(token string) error {
+	s.Memory.Lock()
+	defer s.Memory.Unlock()
+	return s.DB.Update(func(tx *bbolt.Tx) error {
+		b := tx.Bucket([]byte(*tokenBucket))
+		return b.Delete([]byte(token))
+	})
+}
+
+func (s *Server) DeleteTokenFromSession(r *http.Request) error {
+	s.Session.Remove(r.Context(), "token")
+	return nil
+}
+
 func (s *Server) FileServer() http.Handler {
 	return http.FileServer(http.Dir("./static"))
 }

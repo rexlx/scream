@@ -129,7 +129,7 @@ var chatView = `<!DOCTYPE html>
         <p class="menu-label">menu</p>
         <ul class="menu-list">
           <li><a href="/profile" hx-boost="true" class="has-text-info">profile</a></li>
-          <li><a hx-post="/logout" hx-swap="outerHTML" class="has-text-info">logout</a></li>
+          <li><a hx-post="/logout" class="has-text-info">logout</a></li>
         </ul>
       </aside>
     </div>

@@ -52,14 +52,36 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	// successDiv := fmt.Sprintf("<div>%s</div>", "login successful")
 	fmt.Fprintf(w, authNotification, "is-success", "login successful")
+	// theirRoom := fmt.Sprintf("/room/%s", u.ID)
+	// w.Header().Set("HX-Redirect", theirRoom)
 }
 
 func (s *Server) LoginView(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, loginView)
 }
 
+func (s *Server) LogoutView(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, loginView)
+}
+
 func (s *Server) LogoutHandler(w http.ResponseWriter, r *http.Request) {
-	// /logout
+	tk, err := s.GetTokenFromSession(r)
+	if err != nil {
+		http.Error(w, "error getting token", http.StatusInternalServerError)
+		return
+	}
+	err = s.DeleteToken(tk)
+	if err != nil {
+		http.Error(w, "error deleting token", http.StatusInternalServerError)
+		return
+	}
+	err = s.DeleteTokenFromSession(r)
+	if err != nil {
+		http.Error(w, "error deleting token from session", http.StatusInternalServerError)
+		return
+	}
+	// http.Redirect(w, r, "/access", http.StatusFound)
+	w.Header().Set("HX-Redirect", "/access")
 }
 
 func (s *Server) clearAuthNotificationHandler(w http.ResponseWriter, r *http.Request) {
