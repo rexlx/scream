@@ -50,6 +50,7 @@ dasWriter:
 	for {
 		select {
 		case message := <-wsh.Messagechan:
+			// fmt.Printf("got message %+v", message)
 			room, ok := rooms[message.RoomID]
 			if !ok {
 				fmt.Println("room not found", message.RoomID)

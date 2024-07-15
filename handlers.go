@@ -115,13 +115,7 @@ func (s *Server) MessageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	message := r.FormValue("message")
 	roomid := r.FormValue("roomid")
-	out := `<div class="control is-expanded">
-          <input class="input is-outlined" type="text" name="message" placeholder="Type your message...">
-        </div>
-        <div class="control">
-          <button class="button is-info is-outlined" type="submit">Send</button>
-		  <small class="has-text-grey-light">message sent</small>
-        </div>`
+	out := `<input class="input is-outlined" type="text" name="message" id="messageBox" hx-swap-oob="true" placeholder="Type your message...">`
 	s.Messagechan <- WSMessage{Time: time.Now(), Message: message, Email: token.Handle, RoomID: roomid}
 	fmt.Fprint(w, out)
 }

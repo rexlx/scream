@@ -108,7 +108,7 @@ var chatView = `<!DOCTYPE html>
   <title>screamery</title>
   <link rel="stylesheet" href="/static/bulma.min.css">
   <script src="/static/htmx.min.js"></script>
-  <script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>  </style>
+  <script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
   <style>
     body {
       background-color: #0b141c; /* Dark blue background*/
@@ -141,7 +141,7 @@ var chatView = `<!DOCTYPE html>
 
       <form class="field" hx-post="/send-message" hx-trigger="submit" hx-swap="none">
         <div class="control is-expanded">
-          <input class="input is-outlined" type="text" name="message" placeholder="Type your message...">
+          <input class="input is-outlined" type="text" id="messageBox" name="message" placeholder="Type your message...">
         </div>
         <div class="control">
           <button class="button is-info is-outlined" type="submit">send</button>
