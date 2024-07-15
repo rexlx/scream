@@ -54,7 +54,7 @@ func (rm *Room) AddMessage(msg WSMessage) {
 }
 
 func (rm *Room) GetMesssages() string {
-	out := `<div class="box has-background-black" id="chat-box">
+	out := `<div class="box has-background-black mydisplay" id="chat-box">
 	  %v
         </div>`
 	rm.Memory.RLock()

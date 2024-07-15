@@ -109,7 +109,17 @@ var chatView = `<!DOCTYPE html>
   <link rel="stylesheet" href="/static/bulma.min.css">
   <script src="/static/htmx.min.js"></script>
   <script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
+  <script>
+    document.addEventListener("htmx:wsAfterMessage", function(event) {
+      var chatBox = document.getElementById("chat-box");
+      chatBox.scrollTop = chatBox.scrollHeight;
+    });
+  </script>
   <style>
+  .mydisplay {
+    height: 500px;
+    overflow-y: scroll;
+    }
     body {
       background-color: #0b141c; /* Dark blue background*/
     }
@@ -136,7 +146,7 @@ var chatView = `<!DOCTYPE html>
 
     <div class="column">
       <div class="box has-background-black" hx-ext="ws" ws-connect="/ws/%v" hx-target="#chat-box" hx-swap="outerHTML" >
-      <div id="chat-box" hx-get="/messagehist/%v" hx-trigger="load"></div>
+      <div id="chat-box" hx-get="/messagehist/%v" hx-trigger="load" class="mydisplay"></div>
         </div>
 
       <form class="field" hx-post="/send-message" hx-trigger="submit" hx-swap="none">
