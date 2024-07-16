@@ -103,6 +103,7 @@ func NewServer() *Server {
 	s.Gateway.HandleFunc("/profile", s.ProfileView)
 	s.Gateway.HandleFunc("/history", s.UserHistoryHandler)
 	s.Gateway.HandleFunc("/rooms", s.UserRoomsHandler)
+	s.Gateway.HandleFunc("/roomstats", s.GetRoomStatsHandler)
 	s.Gateway.Handle("/static/", http.StripPrefix("/static/", s.FileServer()))
 	// s.Gateway.HandleFunc("/messagehist", s.MessageHistoryHandler)
 	s.Gateway.Handle("/send-message", s.ValidateToken(http.HandlerFunc(s.MessageHandler)))

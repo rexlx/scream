@@ -16,7 +16,7 @@ type Room struct {
 	Messages     []WSMessage
 	Connections  map[*websocket.Conn]bool
 	Memory       *sync.RWMutex
-	Gateway      *http.ServeMux
+	// Gateway      *http.ServeMux
 }
 
 type EnhanchedRequest struct {
@@ -33,15 +33,33 @@ func NewRoom(name string, mLimit int) *Room {
 		Name:         name,
 		MessageLimit: mLimit,
 		ID:           uid,
-		Gateway:      http.NewServeMux(),
-		Memory:       mem,
+		// Gateway:      http.NewServeMux(),
+		Memory: mem,
 	}
-	r.Gateway.HandleFunc("/send-message", r.MessageHandler)
-	r.Gateway.HandleFunc("/messages", r.PrintMessageHandler)
+	// r.Gateway.HandleFunc("/send-message", r.MessageHandler)
+	// r.Gateway.HandleFunc("/messages", r.PrintMessageHandler)
 	// r.Gateway.Handle("/room/", http.StripPrefix("/room", http.HandlerFunc(r.ChatView)))
-	r.Gateway.Handle("/", http.HandlerFunc(r.ChatView))
+	// r.Gateway.Handle("/", http.HandlerFunc(r.ChatView))
 	return r
 
+}
+
+func (rm *Room) GetRoomStats() string {
+	var div = `<div class="content" id="roomstats">
+	%v
+</div>`
+	var c int
+	rm.Memory.RLock()
+	defer rm.Memory.RUnlock()
+	for conn := range rm.Connections {
+		if conn != nil {
+			c++
+		}
+	}
+	out := `<strong>%v</strong>: %v users, %v messages`
+	out = fmt.Sprintf(out, rm.Name, c, len(rm.Messages))
+	div = fmt.Sprintf(div, out)
+	return div
 }
 
 func (rm *Room) AddMessage(msg WSMessage) {

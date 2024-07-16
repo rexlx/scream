@@ -96,15 +96,6 @@ func (rm *Room) MessageHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "message: %s", message)
 }
 
-func (rm *Room) PrintMessageHandler(w http.ResponseWriter, r *http.Request) {
-	// send-message
-}
-
-func (rm *Room) ChatView(w http.ResponseWriter, r *http.Request) {
-	// fmt.Fprint(w, chatView)
-	fmt.Fprintf(w, chatView, rm.ID)
-}
-
 func (s *Server) MessageHandler(w http.ResponseWriter, r *http.Request) {
 	tk, err := s.GetTokenFromSession(r)
 	if err != nil {
@@ -187,7 +178,7 @@ func (s *Server) RoomHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}(tk, room.Name)
 
-	fmt.Fprintf(w, chatView, room.ID, room.ID, room.ID)
+	fmt.Fprintf(w, chatView, room.ID, room.ID, room.ID, room.Name)
 
 }
 
@@ -282,6 +273,32 @@ func (s *Server) UserRoomsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		out += fmt.Sprintf(`<li><a href="/room/%s" class="has-text-grey">%s</a></li>`, v, v)
 	}
+	fmt.Fprint(w, out)
+}
+
+func (s *Server) GetRoomStatsHandler(w http.ResponseWriter, r *http.Request) {
+	tk, err := s.GetTokenFromSession(r)
+	if err != nil {
+		http.Error(w, "error getting token", http.StatusInternalServerError)
+		return
+	}
+	token, err := s.GetToken(tk)
+	if err != nil {
+		http.Error(w, "error getting token", http.StatusInternalServerError)
+		return
+	}
+	u, err := s.GetUserByEmail(token.Email)
+	if err != nil {
+		http.Error(w, "error getting user", http.StatusInternalServerError)
+		return
+	}
+	mostRecentRoom := u.History[len(u.History)-1]
+	room, err := s.GetRoomByName(mostRecentRoom)
+	if err != nil {
+		http.Error(w, "error getting room", http.StatusInternalServerError)
+		return
+	}
+	out := room.GetRoomStats()
 	fmt.Fprint(w, out)
 }
 

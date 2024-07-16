@@ -102,6 +102,7 @@ var loginView = `<!DOCTYPE html>
 
 var chatView = `<!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -110,64 +111,80 @@ var chatView = `<!DOCTYPE html>
   <script src="/static/htmx.min.js"></script>
   <script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
   <script>
-    document.addEventListener("htmx:wsAfterMessage", function(event) {
+    document.addEventListener("htmx:wsAfterMessage", function (event) {
       var chatBox = document.getElementById("chat-box");
       chatBox.scrollTop = chatBox.scrollHeight;
     });
   </script>
   <style>
-  .mydisplay {
-    height: 500px;
-    overflow-y: scroll;
+    .mydisplay {
+      height: 500px;
+      overflow-y: scroll;
     }
+
     body {
-      background-color: #0b141c; /* Dark blue background*/
+      background-color: #0b141c;
+      /* Dark blue background*/
     }
-      @media (max-width: 768px) { 
+
+    @media (max-width: 768px) {
       .column.is-one-quarter {
-        display: none; 
+        display: none;
       }
     }
   </style>
 </head>
+
 <body>
 
-<div class="container">
-  <div class="columns is-mobile">
-    <div class="column is-one-quarter">
-      <aside class="menu">
-        <p class="menu-label">menu</p>
-        <ul class="menu-list">
-        <li><a hx-post="/logout" class="has-text-info">logout</a></li>
-        <li><a href="/add-room" class="has-text-info">add room</a></li>
-          <li><a href="/profile" hx-boost="true" class="has-text-info">profile</a></li>
-          <li><a hx-post="/history" class="has-text-info">history</a></li>
-          <li><a hx-post="/rooms" class="has-text-info">rooms</a></li>
-        </ul>
-      </aside>
+  <div class="container">
+    <div class="columns is-mobile">
+      <div class="column is-one-quarter">
+        <aside class="menu">
+          <p class="menu-label">menu</p>
+          <ul class="menu-list">
+            <li><a hx-post="/logout" class="has-text-info">logout</a></li>
+            <li><a href="/add-room" class="has-text-info">add room</a></li>
+            <li><a href="/profile" hx-boost="true" class="has-text-info">profile</a></li>
+            <li><a hx-post="/history" class="has-text-info">history</a></li>
+            <li><a hx-post="/rooms" class="has-text-info">rooms</a></li>
+          </ul>
+        </aside>
+      </div>
+
+      <div class="column">
+        <div class="box has-background-black" hx-ext="ws" ws-connect="/ws/%v" hx-target="#chat-box" hx-swap="outerHTML">
+          <div id="chat-box" hx-get="/messagehist/%v" hx-trigger="load" class="mydisplay"></div>
+        </div>
+
+        <form class="field" hx-post="/send-message" hx-trigger="submit" hx-swap="none">
+          <div class="control is-expanded">
+            <input class="input is-outlined" type="text" id="messageBox" name="message"
+              placeholder="Type your message...">
+          </div>
+          <div class="control">
+            <button class="button is-info is-outlined" type="submit">send</button>
+            <button class="button is-info is-outlined" hx-target="#roomstats" hx-get="/roomstats" hx-trigger="click"
+              hx-swap="outerHTML">room</button>
+          </div>
+          <input type="hidden" name="roomid" value="%v">
+        </form>
+      </div>
     </div>
-
-    <div class="column">
-      <div class="box has-background-black" hx-ext="ws" ws-connect="/ws/%v" hx-target="#chat-box" hx-swap="outerHTML" >
-      <div id="chat-box" hx-get="/messagehist/%v" hx-trigger="load" class="mydisplay"></div>
+    <div class="columns is-mobile">
+      <div class="column is-is-one-quarter">
+        <div class="content" id="roomstats">
+          room: <strong>%v</strong>
         </div>
 
-      <form class="field" hx-post="/send-message" hx-trigger="submit" hx-swap="none">
-        <div class="control is-expanded">
-          <input class="input is-outlined" type="text" id="messageBox" name="message" placeholder="Type your message...">
-        </div>
-        <div class="control">
-          <button class="button is-info is-outlined" type="submit">send</button>
-        </div>
-        <input type="hidden" name="roomid" value="%v">
-      </form>
+      </div>
+
     </div>
   </div>
-</div>
 
 </body>
-</html>
-`
+
+</html>`
 var profileView = `<!DOCTYPE html>
 <html>
 <head>
