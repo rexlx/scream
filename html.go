@@ -138,8 +138,11 @@ var chatView = `<!DOCTYPE html>
       <aside class="menu">
         <p class="menu-label">menu</p>
         <ul class="menu-list">
+        <li><a hx-post="/logout" class="has-text-info">logout</a></li>
+        <li><a href="/add-room" class="has-text-info">add room</a></li>
           <li><a href="/profile" hx-boost="true" class="has-text-info">profile</a></li>
-          <li><a hx-post="/logout" class="has-text-info">logout</a></li>
+          <li><a hx-post="/history" class="has-text-info">history</a></li>
+          <li><a hx-post="/rooms" class="has-text-info">rooms</a></li>
         </ul>
       </aside>
     </div>
@@ -238,3 +241,42 @@ var clearAuthNotification = `<form hx-post="/login" hx-swap="outerHTML" class="h
 
           <button class="button is-info is-outlined" type="submit">login</button>
         </form>`
+
+var addRoomView = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>add room</title>
+    <link rel="stylesheet" href="/static/bulma.min.css">
+    <script src="/static/htmx.min.js"></script> <style>
+        body {
+            background-color: #0b141c; 
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="columns is-centered">
+        <div class="column is-half">
+            <div class="box has-background-black">
+                <h2 class="title is-2 has-text-info">add user</h2>
+
+                <form hx-post="/addroom" hx-swap="outerHTML">  
+                    <div class="field">
+                        <label class="label has-text-white">room name</label>
+                        <div class="control">
+                            <input class="input is-outlined" type="text" name="room" placeholder="room name">
+                        </div>
+                    </div>
+
+                    <button class="button is-info is-outlined" type="submit">add room</button> 
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>`

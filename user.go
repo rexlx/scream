@@ -9,6 +9,8 @@ import (
 )
 
 type User struct {
+	Rooms     []string  `json:"rooms"`
+	History   []string  `json:"history"`
 	ID        string    `json:"id"`
 	Handle    string    `json:"handle"`
 	Email     string    `json:"email"`
@@ -36,6 +38,20 @@ func (u *User) updateHandle() {
 	}
 }
 
+func (u *User) updateHistory(roomid string) {
+	if len(u.History) >= 10 {
+		u.History = u.History[1:]
+	}
+	u.History = append(u.History, roomid)
+}
+
+func (u *User) updateRooms(roomid string) {
+	if len(u.Rooms) >= 10 {
+		u.Rooms = u.Rooms[1:]
+	}
+	u.Rooms = append(u.Rooms, roomid)
+}
+
 func (u *User) PasswordMatches(input string) (bool, error) {
 	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(input))
 	if err != nil {
@@ -55,7 +71,7 @@ func (u *User) PasswordMatches(input string) (bool, error) {
 }
 
 func (u *User) CreateUser(email, password string) error {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	if err != nil {
 		return err
 	}
@@ -63,5 +79,7 @@ func (u *User) CreateUser(email, password string) error {
 	u.Password = string(hash)
 	u.CreatedAt = time.Now()
 	u.UpdatedAt = time.Now()
+	u.History = make([]string, 0)
+	u.Rooms = make([]string, 0)
 	return nil
 }

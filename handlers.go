@@ -126,7 +126,9 @@ func (s *Server) MessageHandler(w http.ResponseWriter, r *http.Request) {
 func (s *Server) AddUserHandler(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	password := r.FormValue("password")
+
 	var u User
+
 	err := u.CreateUser(email, password)
 	if err != nil {
 		http.Error(w, "error creating user", http.StatusInternalServerError)
@@ -147,6 +149,9 @@ func (s *Server) AddUserView(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) RoomHandler(w http.ResponseWriter, r *http.Request) {
+	// defer func(t time.Time) {
+	// 	fmt.Println("RoomHandler->time taken: ", time.Since(t))
+	// }(time.Now())
 	roomName := getRoomNameFromURL(r.URL.Path)
 	if roomName == "" {
 		redirectToLogin(w, r)
@@ -158,8 +163,126 @@ func (s *Server) RoomHandler(w http.ResponseWriter, r *http.Request) {
 		s.AddRoom(room)
 	}
 
+	tk, err := s.GetTokenFromSession(r)
+	if err != nil {
+		http.Error(w, "error getting token", http.StatusInternalServerError)
+		return
+	}
+	go func(tk string, roomName string) {
+		token, err := s.GetToken(tk)
+		if err != nil {
+			fmt.Println("userHistoryUpdate: error getting token", err)
+			return
+		}
+		u, err := s.GetUserByEmail(token.Email)
+		if err != nil {
+			fmt.Println("userHistoryUpdate: error getting user", err)
+			return
+		}
+		u.updateHistory(roomName)
+		err = s.AddUser(u)
+		if err != nil {
+			fmt.Println("userHistoryUpdate: error saving user", err)
+			return
+		}
+	}(tk, room.Name)
+
 	fmt.Fprintf(w, chatView, room.ID, room.ID, room.ID)
 
+}
+
+func (s *Server) AddRoomToUserRoomsHandler(w http.ResponseWriter, r *http.Request) {
+	roomName := r.FormValue("room")
+	if roomName == "" {
+		http.Error(w, "room name not found", http.StatusBadRequest)
+		return
+	}
+	tk, err := s.GetTokenFromSession(r)
+	if err != nil {
+		http.Error(w, "error getting token", http.StatusInternalServerError)
+		return
+	}
+	token, err := s.GetToken(tk)
+	if err != nil {
+		http.Error(w, "error getting token", http.StatusInternalServerError)
+		return
+	}
+	u, err := s.GetUserByEmail(token.Email)
+	if err != nil {
+		http.Error(w, "error getting user", http.StatusInternalServerError)
+		return
+	}
+	u.updateRooms(roomName)
+	err = s.AddUser(u)
+	if err != nil {
+		http.Error(w, "error adding user", http.StatusInternalServerError)
+		return
+	}
+	fmt.Fprint(w, "room added")
+}
+
+func (s *Server) AddRoomView(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, addRoomView)
+}
+
+func (s *Server) UserHistoryHandler(w http.ResponseWriter, r *http.Request) {
+	tk, err := s.GetTokenFromSession(r)
+	if err != nil {
+		http.Error(w, "error getting token", http.StatusInternalServerError)
+		return
+	}
+	token, err := s.GetToken(tk)
+	if err != nil {
+		http.Error(w, "error getting token", http.StatusInternalServerError)
+		return
+	}
+	u, err := s.GetUserByEmail(token.Email)
+	if err != nil {
+		http.Error(w, "error getting user", http.StatusInternalServerError)
+		return
+	}
+	out := ""
+	encountered := map[string]bool{}
+	// tmpl := `<li><a hx-post="/logout" class="has-text-info">logout</a></li>`
+	for _, v := range u.History {
+		if v == "" {
+			continue
+		}
+		if !encountered[v] {
+			encountered[v] = true
+			out += fmt.Sprintf(`<li><a href="/room/%s" class="has-text-grey">%s</a></li>`, v, v)
+		}
+
+	}
+	fmt.Fprint(w, out)
+
+}
+
+func (s *Server) UserRoomsHandler(w http.ResponseWriter, r *http.Request) {
+	tk, err := s.GetTokenFromSession(r)
+	if err != nil {
+		http.Error(w, "error getting token", http.StatusInternalServerError)
+		return
+	}
+	token, err := s.GetToken(tk)
+	if err != nil {
+		http.Error(w, "error getting token", http.StatusInternalServerError)
+		return
+	}
+	u, err := s.GetUserByEmail(token.Email)
+	if err != nil {
+		http.Error(w, "error getting user", http.StatusInternalServerError)
+		return
+	}
+	out := ""
+	// tmpl := `<li><a hx-post="/logout" class="has-text-info">logout</a></li>`
+	for _, v := range u.Rooms {
+		if v == "" {
+			continue
+		}
+		out += fmt.Sprintf(`<li><a href="/room/%s" class="has-text-grey">%s</a></li>`, v, v)
+	}
+	fmt.Fprint(w, out)
 }
 
 func (s *Server) MessageHistoryHandler(w http.ResponseWriter, r *http.Request) {
@@ -174,7 +297,6 @@ func (s *Server) MessageHistoryHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "room not found", http.StatusNotFound)
 		return
 	}
-	// fmt.Println(room.GetMesssages())
 	fmt.Fprint(w, room.GetMesssages())
 }
 

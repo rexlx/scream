@@ -95,10 +95,14 @@ func NewServer() *Server {
 	s.Gateway.HandleFunc("/login", s.LoginHandler)
 	s.Gateway.HandleFunc("/logout", s.LogoutHandler)
 	s.Gateway.HandleFunc("/add-user", s.AddUserView)
+	s.Gateway.HandleFunc("/add-room", s.AddRoomView)
+	s.Gateway.HandleFunc("/addroom", s.AddRoomToUserRoomsHandler)
 	s.Gateway.HandleFunc("/adduser", s.AddUserHandler)
 	s.Gateway.HandleFunc("/update-profile", s.ProfileHandler)
 	s.Gateway.HandleFunc("/can", s.clearAuthNotificationHandler)
 	s.Gateway.HandleFunc("/profile", s.ProfileView)
+	s.Gateway.HandleFunc("/history", s.UserHistoryHandler)
+	s.Gateway.HandleFunc("/rooms", s.UserRoomsHandler)
 	s.Gateway.Handle("/static/", http.StripPrefix("/static/", s.FileServer()))
 	// s.Gateway.HandleFunc("/messagehist", s.MessageHistoryHandler)
 	s.Gateway.Handle("/send-message", s.ValidateToken(http.HandlerFunc(s.MessageHandler)))
@@ -210,6 +214,7 @@ func (s *Server) AddUser(u User) error {
 		if err != nil {
 			return err
 		}
+		s.Logger.Println("adding user", u.Email)
 		return b.Put([]byte(u.Email), v)
 	})
 }
