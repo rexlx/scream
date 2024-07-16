@@ -7,53 +7,59 @@ var authNotification = `<div class="notification %v" id="notty">
 
 var AdUserHTML = `<!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>add user</title>
     <link rel="stylesheet" href="/static/bulma.min.css">
-    <script src="/static/htmx.min.js"></script> <style>
+    <script src="/static/htmx.min.js"></script>
+    <style>
         body {
-            background-color: #0b141c; 
+            background-color: #0b141c;
         }
     </style>
 </head>
+
 <body>
 
-<div class="container">
-    <div class="columns is-centered">
-        <div class="column is-half">
-            <div class="box has-background-black">
-                <h2 class="title is-2 has-text-info">add user</h2>
+    <div class="container">
+        <div class="columns is-centered">
+            <div class="column is-half">
+                <div class="box has-background-black">
+                    <h2 class="title is-2 has-text-info">add user</h2>
 
-                <form hx-post="/adduser" hx-swap="outerHTML">  
-                    <div class="field">
-                        <label class="label has-text-white">Email</label>
-                        <div class="control">
-                            <input class="input is-outlined" type="email" name="email" placeholder="Enter email">
+                    <form hx-post="/adduser" hx-swap="outerHTML">
+                        <div class="field">
+                            <label class="label has-text-white">Email</label>
+                            <div class="control">
+                                <input class="input is-outlined" type="email" name="email" placeholder="Enter email">
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="field">
-                        <label class="label has-text-white">Password</label>
-                        <div class="control">
-                            <input class="input is-outlined" type="password" name="password" placeholder="Enter password">
+                        <div class="field">
+                            <label class="label has-text-white">Password</label>
+                            <div class="control">
+                                <input class="input is-outlined" type="password" name="password"
+                                    placeholder="Enter password">
+                            </div>
                         </div>
-                    </div>
 
-                    <button class="button is-info is-outlined" type="submit">add user</button> 
-                </form>
+                        <button class="button is-info is-outlined" type="submit">add user</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
 </body>
+
 </html>
 `
 
 var loginView = `<!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -62,43 +68,44 @@ var loginView = `<!DOCTYPE html>
   <script src="/static/htmx.min.js"></script>
   <style>
     body {
-      background-color: #0b141c; 
+      background-color: #0b141c;
     }
   </style>
 </head>
+
 <body>
 
-<div class="container">
-  <div class="columns is-centered">
-    <div class="column is-half">
-      <div class="box has-background-black">
-        <h2 class="title is-2 has-text-info">login</h2>
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-half">
+        <div class="box has-background-black">
+          <h2 class="title is-2 has-text-info">login</h2>
 
-        <form hx-post="/login" hx-swap="outerHTML" class="has-background-black">
-          <div class="field">
-            <label class="label has-text-white">username</label>
-            <div class="control">
-              <input class="input is-outlined" type="text" name="username" placeholder="Enter your username">
+          <form hx-post="/login" hx-swap="outerHTML" class="has-background-black">
+            <div class="field">
+              <label class="label has-text-white">username</label>
+              <div class="control">
+                <input class="input is-outlined" type="text" name="username" placeholder="Enter your username">
+              </div>
             </div>
-          </div>
 
-          <div class="field">
-            <label class="label has-text-white">password</label>
-            <div class="control">
-              <input class="input is-outlined" type="password" name="password" placeholder="Enter your password">
+            <div class="field">
+              <label class="label has-text-white">password</label>
+              <div class="control">
+                <input class="input is-outlined" type="password" name="password" placeholder="Enter your password">
+              </div>
             </div>
-          </div>
 
-          <button class="button is-info is-outlined" type="submit">login</button>
-        </form>
+            <button class="button is-info is-outlined" type="submit">login</button>
+          </form>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
 </body>
-</html>
-`
+
+</html>`
 
 var chatView = `<!DOCTYPE html>
 <html>

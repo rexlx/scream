@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,39 +9,41 @@
   <script src="/static/htmx.min.js"></script>
   <style>
     body {
-      background-color: #0b141c; 
+      background-color: #0b141c;
     }
   </style>
 </head>
+
 <body>
 
-<div class="container">
-  <div class="columns is-centered">
-    <div class="column is-half">
-      <div class="box has-background-black">
-        <h2 class="title is-2 has-text-info">login</h2>
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-half">
+        <div class="box has-background-black">
+          <h2 class="title is-2 has-text-info">login</h2>
 
-        <form hx-post="/login" hx-swap="outerHTML" class="has-background-black">
-          <div class="field">
-            <label class="label has-text-white">username</label>
-            <div class="control">
-              <input class="input is-outlined" type="text" name="username" placeholder="Enter your username">
+          <form hx-post="/login" hx-swap="outerHTML" class="has-background-black">
+            <div class="field">
+              <label class="label has-text-white">username</label>
+              <div class="control">
+                <input class="input is-outlined" type="text" name="username" placeholder="Enter your username">
+              </div>
             </div>
-          </div>
 
-          <div class="field">
-            <label class="label has-text-white">password</label>
-            <div class="control">
-              <input class="input is-outlined" type="password" name="password" placeholder="Enter your password">
+            <div class="field">
+              <label class="label has-text-white">password</label>
+              <div class="control">
+                <input class="input is-outlined" type="password" name="password" placeholder="Enter your password">
+              </div>
             </div>
-          </div>
 
-          <button class="button is-info is-outlined" type="submit">login</button>
-        </form>
+            <button class="button is-info is-outlined" type="submit">login</button>
+          </form>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
 </body>
+
 </html>
