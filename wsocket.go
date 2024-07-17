@@ -31,17 +31,6 @@ type WSHandler struct {
 	Messagechan chan WSMessage
 }
 
-func (wsh *WSHandler) Read() {
-	defer wsh.Conn.Close()
-	for {
-		_, message, err := wsh.Conn.ReadMessage()
-		if err != nil {
-			break
-		}
-		wsh.Messagechan <- WSMessage{Time: time.Now(), Message: string(message)}
-	}
-}
-
 func (wsh *WSHandler) Write(rooms map[string]*Room) {
 	defer wsh.Conn.Close()
 dasWriter:

@@ -104,8 +104,8 @@ var loginView = `<!DOCTYPE html>
   </div>
 
 </body>
-
-</html>`
+</html>
+`
 
 var chatView = `<!DOCTYPE html>
 <html>
@@ -192,6 +192,7 @@ var chatView = `<!DOCTYPE html>
 </body>
 
 </html>`
+
 var profileView = `<!DOCTYPE html>
 <html>
 <head>
@@ -249,22 +250,23 @@ var profileView = `<!DOCTYPE html>
 </html>
 `
 var clearAuthNotification = `<form hx-post="/login" hx-swap="outerHTML" class="has-background-black">
-          <div class="field">
-            <label class="label has-text-white">username</label>
-            <div class="control">
-              <input class="input is-outlined" type="text" name="username" placeholder="Enter your username">
-            </div>
-          </div>
+  <div class="field">
+    <label class="label has-text-white">username</label>
+    <div class="control">
+      <input class="input is-outlined" type="text" name="username" placeholder="Enter your username">
+    </div>
+  </div>
 
-          <div class="field">
-            <label class="label has-text-white">password</label>
-            <div class="control">
-              <input class="input is-outlined" type="password" name="password" placeholder="Enter your password">
-            </div>
-          </div>
+  <div class="field">
+    <label class="label has-text-white">password</label>
+    <div class="control">
+      <input class="input is-outlined" type="password" name="password" placeholder="Enter your password">
+    </div>
+  </div>
 
-          <button class="button is-info is-outlined" type="submit">login</button>
-        </form>`
+  <button class="button is-info is-outlined" type="submit">login</button>
+  </form>
+`
 
 var addRoomView = `<!DOCTYPE html>
 <html>
