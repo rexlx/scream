@@ -113,6 +113,7 @@ func NewServer() *Server {
 
 	s.Gateway.Handle("/room/", s.ValidateToken(http.HandlerFunc(s.RoomHandler)))
 	s.Gateway.Handle("/messagehist/", s.ValidateToken(http.HandlerFunc(s.MessageHistoryHandler)))
+	s.Gateway.Handle("/", http.HandlerFunc(s.LoginView))
 	return s
 }
 

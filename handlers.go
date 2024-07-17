@@ -91,11 +91,6 @@ func (s *Server) clearAuthNotificationHandler(w http.ResponseWriter, r *http.Req
 	fmt.Fprint(w, clearAuthNotification)
 }
 
-func (rm *Room) MessageHandler(w http.ResponseWriter, r *http.Request) {
-	message := r.FormValue("message")
-	fmt.Fprintf(w, "message: %s", message)
-}
-
 func (s *Server) MessageHandler(w http.ResponseWriter, r *http.Request) {
 	tk, err := s.GetTokenFromSession(r)
 	if err != nil {
