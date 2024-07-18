@@ -1,5 +1,13 @@
 package main
 
+// type Style struct {
+// 	Background string
+// }
+
+// var style = Style{
+//   Background: "#0b141c",
+// }
+
 var authNotification = `<div class="notification %v" id="notty">
   <button class="delete" hx-get="/can" hx-trigger="click" hx-target="#notty" hx-swap="outerHTML"></button>
   %v
@@ -122,6 +130,7 @@ var chatView = `<!DOCTYPE html>
       var chatBox = document.getElementById("chat-box");
       chatBox.scrollTop = chatBox.scrollHeight;
     });
+    
   </script>
   <style>
     .mydisplay {
@@ -211,6 +220,7 @@ var profileView = `<!DOCTYPE html>
   <section class="section">
     <div class="container">
       <h1 class="title has-text-info">edit profile</h1>
+      <p class="has-text-info-light"> be careful not to leave any fields empty when saving.</p>
 
       <form hx-post="/update-profile" class="box has-background-black" hx-trigger="submit">
         <div class="field">
@@ -234,14 +244,8 @@ var profileView = `<!DOCTYPE html>
           </div>
         </div>
 
-        <div class="field">
-          <label class="label has-text-white">Password</label>
-          <div class="control">
-            <input class="input" type="password" name="password" placeholder="*********">
-          </div>
-        </div>
-
-        <button type="submit" class="button is-info is-outlined">save changes</button>
+        <button type="submit" class="button is-warning is-outlined">save changes</button>
+        <button class="button is-primary is-outlined" href="#" type="button" onclick="history.back()">cancel</button>
         <input type="hidden" name="userid" value="%v">
       </form>
     </div>
