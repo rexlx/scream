@@ -94,6 +94,8 @@ func (rm *Room) AddConnection(conn *WSHandler) {
 	rm.Connections[conn.Conn] = true
 }
 
-func (rm *Room) MessagesHandler(w http.ResponseWriter, r *http.Request) {
-
+func (rm *Room) ClearMessages() {
+	rm.Memory.Lock()
+	defer rm.Memory.Unlock()
+	rm.Messages = []WSMessage{}
 }

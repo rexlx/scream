@@ -92,6 +92,9 @@ func (s *Server) clearAuthNotificationHandler(w http.ResponseWriter, r *http.Req
 }
 
 func (s *Server) MessageHandler(w http.ResponseWriter, r *http.Request) {
+	defer func(t time.Time) {
+		s.Logger.Println("MessageHandler->time taken: ", time.Since(t))
+	}(time.Now())
 	tk, err := s.GetTokenFromSession(r)
 	if err != nil {
 		http.Error(w, "error getting token", http.StatusInternalServerError)
@@ -105,6 +108,16 @@ func (s *Server) MessageHandler(w http.ResponseWriter, r *http.Request) {
 	message := r.FormValue("message")
 	message = parseCommand(message)
 	roomid := r.FormValue("roomid")
+	if message == "~clear" {
+		room, ok := s.Rooms[roomid]
+		if !ok {
+			http.Error(w, "room not found", http.StatusNotFound)
+			return
+		}
+		fmt.Println("clearing messages")
+		room.ClearMessages()
+		message = "hello world!"
+	}
 	out := `<input class="input is-outlined" type="text" name="message" id="messageBox" hx-swap-oob="true" placeholder="Type your message...">`
 	s.Messagechan <- WSMessage{Time: time.Now(), Message: message, Email: token.Handle, RoomID: roomid}
 	fmt.Fprint(w, out)
@@ -136,9 +149,6 @@ func (s *Server) AddUserView(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) RoomHandler(w http.ResponseWriter, r *http.Request) {
-	// defer func(t time.Time) {
-	// 	fmt.Println("RoomHandler->time taken: ", time.Since(t))
-	// }(time.Now())
 	roomName := getRoomNameFromURL(r.URL.Path)
 	if roomName == "" {
 		redirectToLogin(w, r)
@@ -386,11 +396,20 @@ func parseCommand(c string) string {
 	// ~link__https://foo.bar/thing__link text here
 	out := `<a href="%v" class="has-text-link">%v</a>`
 	parts := strings.Split(c, "__")
-	fmt.Println(parts, len(parts))
-	if len(parts) < 3 || parts[0] != "~link" {
+	// fmt.Println(parts, len(parts))
+	// if len(parts) < 3 || parts[0] != "~link" {
+	// 	return c
+	// }
+	switch parts[0] {
+	case "~link":
+		if len(parts) < 3 {
+			return c
+		}
+		return fmt.Sprintf(out, parts[1], parts[2])
+	case "~clear":
+		return "~clear"
+	default:
 		return c
 	}
-
-	return fmt.Sprintf(out, parts[1], parts[2])
 
 }

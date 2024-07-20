@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"flag"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -53,6 +54,9 @@ type Token struct {
 }
 
 func NewServer() *Server {
+	defer func(t time.Time) {
+		fmt.Println("NewServer->time taken: ", time.Since(t))
+	}(time.Now())
 	sessionMgr := scs.New()
 	sessionMgr.Lifetime = 24 * time.Hour
 	sessionMgr.IdleTimeout = 20 * time.Minute
