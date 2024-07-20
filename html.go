@@ -159,6 +159,7 @@ var chatView = `<!DOCTYPE html>
         <aside class="menu">
           <p class="menu-label">menu</p>
           <ul class="menu-list">
+          <li><a href="/help" target="_blank" rel="noopener noreferrer" class="has-text-info">help</a></li>
             <li><a hx-post="/logout" class="has-text-info">logout</a></li>
             <li><a href="/add-room" class="has-text-info">add room</a></li>
             <li><a href="/profile" hx-boost="true" class="has-text-info">profile</a></li>
