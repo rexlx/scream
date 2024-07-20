@@ -2,7 +2,15 @@
 
 ### a chat app
 
-go / htmx / bbolt / bulma. websocket based chat application.
+go / htmx / bbolt / bulma.
+
+## features
+- local login
+- html sanitization
+- local db (bbolt)
+- messages are only stored in memory (never written to disk)
+- send "commands" to the server (see help page)
+- a help page
 
 a work in progress but otherwise functional
 
@@ -31,12 +39,6 @@ Usage of ./scream:
 - /help for help
 - / to hit login
 - /room/whatever to create a new room
-## features
-- html sanitization
-- local db (bbolt)
-- send "commands" to server (see help page)
-- a help page
-
 
 ## example
 
