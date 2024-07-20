@@ -2,18 +2,41 @@
 
 ### a chat app
 
-go / htmx / websocket chat application using the bulma css framework for styling.
+go / htmx / bbolt / bulma. websocket based chat application.
 
 a work in progress but otherwise functional
 
 ## install and run
 `go build . # in root directory`
 
+```
+./scream -h
+Usage of ./scream:
+  -db-name string
+    	database name (default "chat.db")
+  -log-file string
+    	log file (default "chat.log")
+  -message-limit int
+    	message limit (default 100)
+  -token-bucket string
+    	token bucket (default "tokens")
+  -url string
+    	url (default ":8080")
+  -user-bucket string
+    	user bucket (default "users")
+```
+
+### endpoints
 - localhost:8080/add-user to add first user.
+- /help for help
 - / to hit login
 - /room/whatever to create a new room
-- posting name is first + last name or email if those are empty
-- logout after updating profile for saves to change.
+## features
+- html sanitization
+- local db (bbolt)
+- send "commands" to server (see help page)
+- a help page
+
 
 ## example
 
