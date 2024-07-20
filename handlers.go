@@ -103,6 +103,7 @@ func (s *Server) MessageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	message := r.FormValue("message")
+	message = parseCommand(message)
 	roomid := r.FormValue("roomid")
 	out := `<input class="input is-outlined" type="text" name="message" id="messageBox" hx-swap-oob="true" placeholder="Type your message...">`
 	s.Messagechan <- WSMessage{Time: time.Now(), Message: message, Email: token.Handle, RoomID: roomid}
@@ -338,6 +339,11 @@ func (s *Server) ProfileView(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, profileView, token.Email)
 }
 
+func (s *Server) HelpHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/pdf")
+	http.ServeFile(w, r, "static/scream.pdf")
+}
+
 func (s *Server) ProfileHandler(w http.ResponseWriter, r *http.Request) {
 	userid := r.FormValue("userid")
 	email := r.FormValue("email")
@@ -371,4 +377,20 @@ func getRoomNameFromURL(url string) string {
 
 func redirectToLogin(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/login", http.StatusFound)
+}
+
+func parseCommand(c string) string {
+	if c == "" {
+		return ""
+	}
+	// ~link__https://foo.bar/thing__link text here
+	out := `<a href="%v" class="has-text-link">%v</a>`
+	parts := strings.Split(c, "__")
+	fmt.Println(parts, len(parts))
+	if len(parts) < 3 || parts[0] != "~link" {
+		return c
+	}
+
+	return fmt.Sprintf(out, parts[1], parts[2])
+
 }

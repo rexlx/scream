@@ -30,6 +30,7 @@ var (
 
 type Server struct {
 	*WSHandler
+	// HelpPDF []byte
 	Logger  *log.Logger
 	DB      *bbolt.DB
 	Gateway *http.ServeMux
@@ -79,6 +80,12 @@ func NewServer() *Server {
 		Messagechan: make(chan WSMessage, 20),
 	}
 
+	// pdf, err := os.ReadFile("static/scream.pdf")
+	// if err != nil {
+	// 	log.Println("error reading pdf", err)
+	// 	log.Fatal(err)
+	// }
+
 	s := &Server{
 		WSHandler: wsh,
 		Logger:    myLogger,
@@ -103,6 +110,7 @@ func NewServer() *Server {
 	s.Gateway.HandleFunc("/profile", s.ProfileView)
 	s.Gateway.HandleFunc("/history", s.UserHistoryHandler)
 	s.Gateway.HandleFunc("/rooms", s.UserRoomsHandler)
+	s.Gateway.HandleFunc("/help", s.HelpHandler)
 	s.Gateway.HandleFunc("/roomstats", s.GetRoomStatsHandler)
 	s.Gateway.Handle("/static/", http.StripPrefix("/static/", s.FileServer()))
 	// s.Gateway.HandleFunc("/messagehist", s.MessageHistoryHandler)
