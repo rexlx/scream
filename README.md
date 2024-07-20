@@ -6,7 +6,7 @@ go / htmx / bbolt / bulma.
 
 ## features
 - local login
-- html sanitization
+- message sanitization
 - local db (bbolt)
 - messages are only stored in memory (never written to disk)
 - send "commands" to the server (see help page)
