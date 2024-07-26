@@ -10,7 +10,9 @@ import (
 
 type User struct {
 	Rooms     []string  `json:"rooms"`
+	Posts     []string  `json:"posts"`
 	History   []string  `json:"history"`
+	About     string    `json:"about"`
 	ID        string    `json:"id"`
 	Handle    string    `json:"handle"`
 	Email     string    `json:"email"`
@@ -81,5 +83,6 @@ func (u *User) CreateUser(email, password string) error {
 	u.UpdatedAt = time.Now()
 	u.History = make([]string, 0)
 	u.Rooms = make([]string, 0)
+	u.Posts = make([]string, 0)
 	return nil
 }

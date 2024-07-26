@@ -227,21 +227,27 @@ var profileView = `<!DOCTYPE html>
         <div class="field">
           <label class="label has-text-white">Email</label>
           <div class="control">
-            <input class="input" type="email" name="email" placeholder="you@example.com" required>
+            <input class="input" type="email" name="email" placeholder="you@example.com" required value="%v">
           </div>
         </div>
 
         <div class="field">
           <label class="label has-text-white">First Name</label>
           <div class="control">
-            <input class="input" type="text" name="first_name" placeholder="John">
+            <input class="input" type="text" name="first_name" placeholder="big" value="%v">
           </div>
         </div>
 
         <div class="field">
           <label class="label has-text-white">Last Name</label>
           <div class="control">
-            <input class="input" type="text" name="last_name" placeholder="Doe">
+            <input class="input" type="text" name="last_name" placeholder="mac" value="%v">
+          </div>
+        </div>
+        <div class="field">
+          <label class="label has-text-white">about</label>
+          <div class="control">
+            <textarea maxlength="200" class="textarea" name="about" placeholder="about me...">%v</textarea>
           </div>
         </div>
 

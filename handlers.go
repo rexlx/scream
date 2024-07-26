@@ -92,6 +92,9 @@ func (s *Server) clearAuthNotificationHandler(w http.ResponseWriter, r *http.Req
 }
 
 func (s *Server) MessageHandler(w http.ResponseWriter, r *http.Request) {
+
+	// TODO we could get the user and pass the userid to the WSHMessage
+	// gaining the ability to link the div to the user!
 	defer func(t time.Time) {
 		s.Logger.Println("MessageHandler->time taken: ", time.Since(t))
 	}(time.Now())
@@ -108,18 +111,27 @@ func (s *Server) MessageHandler(w http.ResponseWriter, r *http.Request) {
 	message := r.FormValue("message")
 	message = parseCommand(message)
 	roomid := r.FormValue("roomid")
+
 	if message == "~clear" {
 		room, ok := s.Rooms[roomid]
 		if !ok {
-			http.Error(w, "room not found", http.StatusNotFound)
+			fmt.Println("MessageHandler: room not found", roomid)
 			return
 		}
-		fmt.Println("clearing messages")
 		room.ClearMessages()
 		message = "hello world!"
 	}
+
+	go func(message string, roomid string, token *Token) {
+		u, err := s.GetUserByEmail(token.Email)
+		if err != nil {
+			fmt.Println("MessageHandler: error getting user", err)
+			return
+		}
+
+		s.Messagechan <- WSMessage{Time: time.Now(), Message: message, Email: token.Handle, RoomID: roomid, UserID: u.ID}
+	}(message, roomid, token)
 	out := `<input class="input is-outlined" type="text" name="message" id="messageBox" hx-swap-oob="true" placeholder="Type your message...">`
-	s.Messagechan <- WSMessage{Time: time.Now(), Message: message, Email: token.Handle, RoomID: roomid}
 	fmt.Fprint(w, out)
 }
 
@@ -346,7 +358,13 @@ func (s *Server) ProfileView(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "error getting token", http.StatusInternalServerError)
 		return
 	}
-	fmt.Fprintf(w, profileView, token.Email)
+	u, err := s.GetUserByEmail(token.Email)
+	if err != nil {
+		http.Error(w, "error getting user", http.StatusInternalServerError)
+		return
+	}
+	fmt.Println(u.About)
+	fmt.Fprintf(w, profileView, u.Email, u.FirstName, u.LastName, u.About, u.Email)
 }
 
 func (s *Server) HelpHandler(w http.ResponseWriter, r *http.Request) {
@@ -360,6 +378,11 @@ func (s *Server) ProfileHandler(w http.ResponseWriter, r *http.Request) {
 	// password := r.FormValue("password")
 	fname := r.FormValue("first_name")
 	lname := r.FormValue("last_name")
+	about := r.FormValue("about")
+	if len(about) > 200 {
+		http.Error(w, "about too long", http.StatusBadRequest)
+		return
+	}
 	u, err := s.GetUserByEmail(userid)
 	if err != nil {
 		http.Error(w, "error getting user", http.StatusInternalServerError)
@@ -368,6 +391,7 @@ func (s *Server) ProfileHandler(w http.ResponseWriter, r *http.Request) {
 	u.FirstName = fname
 	u.LastName = lname
 	u.Email = email
+	u.About = about
 	u.updateHandle()
 	err = s.AddUser(u)
 	if err != nil {

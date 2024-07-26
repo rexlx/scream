@@ -33,6 +33,7 @@ type WSHandler struct {
 
 func (wsh *WSHandler) Write(rooms map[string]*Room) {
 	defer wsh.Conn.Close()
+	// defer fmt.Println("WSHandler.Write: closing connection")
 dasWriter:
 	for {
 		select {
@@ -76,7 +77,6 @@ func (wsh *WSHandler) ServeWS(rooms map[string]*Room, w http.ResponseWriter, r *
 		return
 	}
 
-	fmt.Println("serving ws")
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		http.Error(w, "error upgrading connection", http.StatusInternalServerError)
