@@ -92,7 +92,6 @@ func (s *Server) clearAuthNotificationHandler(w http.ResponseWriter, r *http.Req
 }
 
 func (s *Server) MessageHandler(w http.ResponseWriter, r *http.Request) {
-
 	// TODO we could get the user and pass the userid to the WSHMessage
 	// gaining the ability to link the div to the user!
 	defer func(t time.Time) {
@@ -364,8 +363,7 @@ func (s *Server) ProfileView(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "error getting user", http.StatusInternalServerError)
 		return
 	}
-	fmt.Println(u.About)
-	fmt.Fprintf(w, profileView, u.Email, u.FirstName, u.LastName, u.About, u.Email)
+	fmt.Fprintf(w, editProfileView, u.Email, u.FirstName, u.LastName, u.About, u.Email)
 }
 
 func (s *Server) AddPostHandler(w http.ResponseWriter, r *http.Request) {
@@ -393,6 +391,53 @@ func (s *Server) AddPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Fprintf(w, "post added")
+}
+
+func (s *Server) UserProfileHandler(w http.ResponseWriter, r *http.Request) {
+	basicContent := `<div class="content">
+		<h1 class="title is-1">Profile</h1>
+		<p class="has-text-warning">handle: %v</p>
+		<p class="has-text-info">about: %v</p>
+		</div>`
+	postsContent := `<div class="content">
+		<h1 class="title is-1">Posts</h1>
+		%v
+		</div>`
+	postDiv := `<div class="box has-background-black mydisplay">
+		<p class="has-text-info">%v</p>
+		<a href="/room/%v" target="_blank" rel="noopener noreferrer" class="has-text-white">comment</a>
+		</div>`
+	tk, err := s.GetTokenFromSession(r)
+	if err != nil {
+		http.Error(w, "error getting token", http.StatusInternalServerError)
+		return
+	}
+	_, err = s.GetToken(tk)
+	if err != nil {
+		http.Error(w, "error getting token", http.StatusInternalServerError)
+		return
+	}
+	urlParts := strings.Split(r.URL.Path, "/")
+	if len(urlParts) < 3 {
+		http.Error(w, "user not found", http.StatusBadRequest)
+		return
+	}
+	userid := urlParts[2]
+	u, err := s.GetUserByID(userid)
+	if err != nil {
+		http.Error(w, "user not found", http.StatusBadRequest)
+		return
+	}
+	posts := ""
+	for _, v := range u.Posts {
+		posts += fmt.Sprintf(postDiv, v.Content, v.ID)
+	}
+	posts = fmt.Sprintf(postsContent, posts)
+	out := fmt.Sprintf(basicContent, u.Handle, u.About)
+	// out += posts
+	profileView := fmt.Sprintf(profileView, out, posts)
+	fmt.Fprint(w, profileView)
+
 }
 
 func (s *Server) AddPostView(w http.ResponseWriter, r *http.Request) {

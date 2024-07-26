@@ -5,12 +5,13 @@ import (
 	"errors"
 	"time"
 
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
 	Rooms     []string  `json:"rooms"`
-	Posts     []string  `json:"posts"`
+	Posts     []Post    `json:"posts"`
 	History   []string  `json:"history"`
 	About     string    `json:"about"`
 	ID        string    `json:"id"`
@@ -23,6 +24,11 @@ type User struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	Token     Token     `json:"token"`
+}
+
+type Post struct {
+	ID      string `json:"id"`
+	Content string `json:"content"`
 }
 
 func (u *User) MarshalBinary() ([]byte, error) {
@@ -47,11 +53,11 @@ func (u *User) updateHistory(roomid string) {
 	u.History = append(u.History, roomid)
 }
 
-func (u *User) updatePosts(postid string) {
+func (u *User) updatePosts(content string) {
 	if len(u.Posts) >= 10 {
 		u.Posts = u.Posts[1:]
 	}
-	u.Posts = append(u.Posts, postid)
+	u.Posts = append(u.Posts, Post{ID: uuid.New().String(), Content: content})
 }
 
 func (u *User) updateRooms(roomid string) {
@@ -84,12 +90,13 @@ func (u *User) CreateUser(email, password string) error {
 	if err != nil {
 		return err
 	}
+	u.ID = uuid.New().String()
 	u.Email = email
 	u.Password = string(hash)
 	u.CreatedAt = time.Now()
 	u.UpdatedAt = time.Now()
 	u.History = make([]string, 0)
 	u.Rooms = make([]string, 0)
-	u.Posts = make([]string, 0)
+	u.Posts = make([]Post, 0)
 	return nil
 }

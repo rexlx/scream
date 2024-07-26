@@ -127,6 +127,7 @@ func NewServer() *Server {
 	}))
 
 	s.Gateway.Handle("/room/", s.ValidateToken(http.HandlerFunc(s.RoomHandler)))
+	s.Gateway.Handle("/user/", s.ValidateToken(http.HandlerFunc(s.UserProfileHandler)))
 	s.Gateway.Handle("/messagehist/", s.ValidateToken(http.HandlerFunc(s.MessageHistoryHandler)))
 	s.Gateway.Handle("/", http.HandlerFunc(s.LoginView))
 	return s
@@ -281,4 +282,25 @@ func SanitizeHTML(s string) string {
 	s = html.EscapeString(s)
 	// fmt.Println("SanitizeHTML->s: ", s)
 	return s
+}
+
+func (s *Server) GetUserByID(userid string) (User, error) {
+	s.Memory.RLock()
+	defer s.Memory.RUnlock()
+	var user User
+	err := s.DB.View(func(tx *bbolt.Tx) error {
+		b := tx.Bucket([]byte(*userBucket))
+		c := b.Cursor()
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			err := user.UnmarshalBinary(v)
+			if err != nil {
+				return err
+			}
+			if user.ID == userid {
+				return nil
+			}
+		}
+		return nil
+	})
+	return user, err
 }

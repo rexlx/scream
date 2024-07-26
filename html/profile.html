@@ -1,55 +1,36 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>edit profile</title>
+  <title>login</title>
   <link rel="stylesheet" href="/static/bulma.min.css">
   <script src="/static/htmx.min.js"></script>
   <style>
-  body {
-      background-color: #0b141c; /* Dark background */
+    body {
+      background-color: #0b141c;
     }
   </style>
 </head>
-<body class="has-background-black">
-  <section class="section">
-    <div class="container">
-      <h1 class="title has-text-info">edit profile</h1>
 
-      <form hx-post="/update-profile" class="box has-background-black" hx-trigger="submit">
-        <div class="field">
-          <label class="label has-text-white">Email</label>
-          <div class="control">
-            <input class="input" type="email" name="email" placeholder="you@example.com" required>
-          </div>
+<body>
+
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-half">
+        <div class="box has-background-black">
+          
         </div>
-
-        <div class="field">
-          <label class="label has-text-white">First Name</label>
-          <div class="control">
-            <input class="input" type="text" name="first_name" placeholder="John">
-          </div>
+      </div>
+      <div class="column is-half">
+        <div class="box has-background-black">
+          
         </div>
-
-        <div class="field">
-          <label class="label has-text-white">Last Name</label>
-          <div class="control">
-            <input class="input" type="text" name="last_name" placeholder="Doe">
-          </div>
-        </div>
-
-        <div class="field">
-          <label class="label has-text-white">Password</label>
-          <div class="control">
-            <input class="input" type="password" name="password" placeholder="*********">
-          </div>
-        </div>
-
-        <button type="submit" class="button is-info is-outlined">save changes</button>
-        <input type="hidden" name="userid" value="%v">
-      </form>
+      </div>
     </div>
-  </section>
+  </div>
+
 </body>
+
 </html>

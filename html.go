@@ -203,7 +203,7 @@ var chatView = `<!DOCTYPE html>
 
 </html>`
 
-var profileView = `<!DOCTYPE html>
+var editProfileView = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
@@ -355,5 +355,40 @@ var addPostView = `<!DOCTYPE html>
 </div>
 
 </body>
+</html>
+`
+var profileView = `<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>user</title>
+  <link rel="stylesheet" href="/static/bulma.min.css">
+  <script src="/static/htmx.min.js"></script>
+  <style>
+    body {
+      background-color: #0b141c;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-half">
+        <div class="box has-background-black">
+          %v
+        </div>
+        <div class="box has-background-black">
+          %v
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+
 </html>
 `

@@ -79,7 +79,7 @@ func (rm *Room) GetMesssages() string {
 	defer rm.Memory.RUnlock()
 	messages := ""
 	for _, msg := range rm.Messages {
-		messages += fmt.Sprintf(`<div class="content has-background-black"><em class="has-text-white">%v:</em>  <p class="has-text-primary">%v</p></div>`, msg.Email, msg.Message)
+		messages += fmt.Sprintf(`<div class="content has-background-black"><a href="/user/%v">%v</a>  <p class="has-text-primary">%v</p></div>`, msg.UserID, msg.Email, msg.Message)
 	}
 	if messages == "" {
 		messages = `<div class="content has-background-black"><em class="has-text-white">server bot:</em>  <p class="has-text-primary">you're the first one here! (maybe)</p></div>`
