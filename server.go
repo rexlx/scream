@@ -110,6 +110,8 @@ func NewServer() *Server {
 	s.Gateway.HandleFunc("/add-room", s.AddRoomView)
 	s.Gateway.HandleFunc("/addroom", s.AddRoomToUserRoomsHandler)
 	s.Gateway.HandleFunc("/adduser", s.AddUserHandler)
+	s.Gateway.HandleFunc("/addpost", s.AddPostHandler)
+	s.Gateway.HandleFunc("/add-post", s.AddPostView)
 	s.Gateway.HandleFunc("/update-profile", s.ProfileHandler)
 	s.Gateway.HandleFunc("/can", s.clearAuthNotificationHandler)
 	s.Gateway.HandleFunc("/profile", s.ProfileView)

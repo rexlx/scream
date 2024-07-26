@@ -387,7 +387,16 @@ func (s *Server) AddPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	post := r.FormValue("post")
 	u.updatePosts(SanitizeHTML(post))
+	err = s.AddUser(u)
+	if err != nil {
+		http.Error(w, "error saving user", http.StatusInternalServerError)
+		return
+	}
 	fmt.Fprintf(w, "post added")
+}
+
+func (s *Server) AddPostView(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, addPostView)
 }
 
 func (s *Server) HelpHandler(w http.ResponseWriter, r *http.Request) {
