@@ -47,6 +47,13 @@ func (u *User) updateHistory(roomid string) {
 	u.History = append(u.History, roomid)
 }
 
+func (u *User) updatePosts(postid string) {
+	if len(u.Posts) >= 10 {
+		u.Posts = u.Posts[1:]
+	}
+	u.Posts = append(u.Posts, postid)
+}
+
 func (u *User) updateRooms(roomid string) {
 	if len(u.Rooms) >= 10 {
 		u.Rooms = u.Rooms[1:]

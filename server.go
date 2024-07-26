@@ -277,6 +277,6 @@ func (s *Server) AddRoom(r *Room) {
 
 func SanitizeHTML(s string) string {
 	s = html.EscapeString(s)
-	fmt.Println("SanitizeHTML->s: ", s)
+	// fmt.Println("SanitizeHTML->s: ", s)
 	return s
 }

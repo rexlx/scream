@@ -386,7 +386,8 @@ func (s *Server) AddPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	post := r.FormValue("post")
-	fmt.Println("post", post, u)
+	u.updatePosts(SanitizeHTML(post))
+	fmt.Fprintf(w, "post added")
 }
 
 func (s *Server) HelpHandler(w http.ResponseWriter, r *http.Request) {
