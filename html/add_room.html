@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>add room</title>
+    <link rel="stylesheet" href="/static/bulma.min.css">
+    <script src="/static/htmx.min.js"></script> <style>
+        body {
+            background-color: #0b141c; 
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="columns is-centered">
+        <div class="column is-half">
+            <div class="box has-background-black">
+                <h2 class="title is-2 has-text-info">add post</h2>
+
+                <form hx-post="/addpost" hx-swap="outerHTML">  
+                    <div class="field">
+                        <label class="label has-text-white">add post</label>
+                        <div class="control">
+                            <textarea name="post" id="post">whats up, buttercup?</textarea>
+                        </div>
+                    </div>
+
+                    <button class="button is-info is-outlined" type="submit">post</button> 
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

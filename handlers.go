@@ -128,6 +128,7 @@ func (s *Server) MessageHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("MessageHandler: error getting user", err)
 			return
 		}
+		message = SanitizeHTML(message)
 
 		s.Messagechan <- WSMessage{Time: time.Now(), Message: message, Email: token.Handle, RoomID: roomid, UserID: u.ID}
 	}(message, roomid, token)
@@ -365,6 +366,27 @@ func (s *Server) ProfileView(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println(u.About)
 	fmt.Fprintf(w, profileView, u.Email, u.FirstName, u.LastName, u.About, u.Email)
+}
+
+func (s *Server) AddPostHandler(w http.ResponseWriter, r *http.Request) {
+	tk, err := s.GetTokenFromSession(r)
+	if err != nil {
+		http.Error(w, "error getting token", http.StatusInternalServerError)
+		return
+	}
+	token, err := s.GetToken(tk)
+	if err != nil {
+		http.Error(w, "error getting token", http.StatusInternalServerError)
+		return
+	}
+	u, err := s.GetUserByEmail(token.Email)
+	if err != nil {
+		http.Error(w, "error getting user", http.StatusInternalServerError)
+		return
+	}
+
+	post := r.FormValue("post")
+	fmt.Println("post", post, u)
 }
 
 func (s *Server) HelpHandler(w http.ResponseWriter, r *http.Request) {

@@ -8,6 +8,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"html"
 	"io"
 	"log"
 	"net/http"
@@ -272,4 +273,10 @@ func (s *Server) AddRoom(r *Room) {
 	s.Memory.Lock()
 	defer s.Memory.Unlock()
 	s.Rooms[r.ID] = r
+}
+
+func SanitizeHTML(s string) string {
+	s = html.EscapeString(s)
+	fmt.Println("SanitizeHTML->s: ", s)
+	return s
 }
