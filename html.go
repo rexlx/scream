@@ -165,6 +165,7 @@ var chatView = `<!DOCTYPE html>
             <li><a href="/profile" hx-boost="true" class="has-text-info">profile</a></li>
             <li><a hx-post="/history" class="has-text-info">history</a></li>
             <li><a hx-post="/rooms" class="has-text-info">rooms</a></li>
+            <li><a href="/add-post" class="has-text-info">add post</a></li>
           </ul>
         </aside>
       </div>
