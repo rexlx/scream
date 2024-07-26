@@ -5,7 +5,9 @@
 go / htmx / bbolt / bulma.
 
 ## features
-- local login
+- authentication
+- create posts for your profile
+- comment on other users posts
 - message sanitization
 - local db (bbolt)
 - messages are only stored in memory (never written to disk)
