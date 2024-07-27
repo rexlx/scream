@@ -26,8 +26,10 @@ var (
 	tokenBucket = flag.String("token-bucket", "tokens", "token bucket")
 	dbName      = flag.String("db-name", "chat.db", "database name")
 	logFile     = flag.String("log-file", "chat.log", "log file")
-	url         = flag.String("url", ":8080", "url")
+	url         = flag.String("url", ":8081", "url")
 	mLimit      = flag.Int("message-limit", 100, "message limit")
+	certFile    = flag.String("cert-file", "server-cert.pem", "cert file")
+	keyFile     = flag.String("key-file", "server-key.pem", "key file")
 )
 
 type Server struct {
@@ -54,7 +56,7 @@ type Token struct {
 	Hash      []byte
 }
 
-func NewServer() *Server {
+func NewServer(url string) *Server {
 	defer func(t time.Time) {
 		fmt.Println("NewServer->time taken: ", time.Since(t))
 	}(time.Now())
@@ -99,7 +101,7 @@ func NewServer() *Server {
 		Memory:    mem,
 		Context:   nil,
 		Rooms:     rooms,
-		URL:       *url,
+		URL:       url,
 		Session:   sessionMgr,
 	}
 	// s.Gateway.HandleFunc("/", s.RoomHandler)
