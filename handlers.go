@@ -108,6 +108,7 @@ func (s *Server) MessageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	message := r.FormValue("message")
+	message = SanitizeHTML(message)
 	message = parseCommand(message)
 	roomid := r.FormValue("roomid")
 
@@ -127,7 +128,6 @@ func (s *Server) MessageHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("MessageHandler: error getting user", err)
 			return
 		}
-		message = SanitizeHTML(message)
 
 		s.Messagechan <- WSMessage{Time: time.Now(), Message: message, Email: token.Handle, RoomID: roomid, UserID: u.ID}
 	}(message, roomid, token)
