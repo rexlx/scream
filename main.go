@@ -34,6 +34,7 @@ func main() {
 		Handler:   s.Session.LoadAndSave(s.Gateway),
 		TLSConfig: cfg,
 	}
+	s.CleanUpTokens()
 	s.Logger.Println("server started")
 	fmt.Println("server started", s.URL)
 	err = server.ListenAndServeTLS("", "")

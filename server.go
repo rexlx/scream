@@ -306,3 +306,27 @@ func (s *Server) GetUserByID(userid string) (User, error) {
 	})
 	return user, err
 }
+
+func (s *Server) CleanUpTokens() error {
+	s.Memory.Lock()
+	defer s.Memory.Unlock()
+	return s.DB.Update(func(tx *bbolt.Tx) error {
+		b := tx.Bucket([]byte(*tokenBucket))
+		c := b.Cursor()
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			var tk Token
+			err := tk.UnmarshalBinary(v)
+			if err != nil {
+				return err
+			}
+			if tk.ExpiresAt.Before(time.Now()) {
+				err := b.Delete(k)
+				if err != nil {
+					return err
+				}
+				fmt.Println("token deleted", tk.Token)
+			}
+		}
+		return nil
+	})
+}
