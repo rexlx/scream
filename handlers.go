@@ -54,6 +54,7 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.Logger.Println("login successful", u.Email)
+	w.Header().Set("HX-Redirect", "/splash")
 	fmt.Fprintf(w, authNotification, "is-success", "login successful")
 	// theirRoom := fmt.Sprintf("/room/%s", u.ID)
 	// w.Header().Set("HX-Redirect", theirRoom)
@@ -198,6 +199,10 @@ func (s *Server) RoomHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprintf(w, chatView, room.ID, room.ID, room.ID, room.Name)
 
+}
+
+func (s *Server) SplashView(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, splashView)
 }
 
 func (s *Server) AddRoomToUserRoomsHandler(w http.ResponseWriter, r *http.Request) {

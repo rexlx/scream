@@ -124,6 +124,7 @@ func NewServer(url string) *Server {
 	s.Gateway.Handle("/static/", http.StripPrefix("/static/", s.FileServer()))
 	// s.Gateway.HandleFunc("/messagehist", s.MessageHistoryHandler)
 	s.Gateway.Handle("/send-message", s.ValidateToken(http.HandlerFunc(s.MessageHandler)))
+	s.Gateway.Handle("/splash", s.ValidateToken(http.HandlerFunc(s.SplashView)))
 	s.Gateway.Handle("/ws/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		s.ServeWS(rooms, w, r)
 	}))
