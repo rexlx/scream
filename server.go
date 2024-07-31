@@ -22,14 +22,15 @@ import (
 )
 
 var (
-	userBucket  = flag.String("user-bucket", "users", "user bucket")
-	tokenBucket = flag.String("token-bucket", "tokens", "token bucket")
-	dbName      = flag.String("db-name", "chat.db", "database name")
-	logFile     = flag.String("log-file", "chat.log", "log file")
-	url         = flag.String("url", ":8081", "url")
-	mLimit      = flag.Int("message-limit", 100, "message limit")
-	certFile    = flag.String("cert-file", "server-cert.pem", "cert file")
-	keyFile     = flag.String("key-file", "server-key.pem", "key file")
+	userBucket    = flag.String("user-bucket", "users", "user bucket")
+	tokenBucket   = flag.String("token-bucket", "tokens", "token bucket")
+	dbName        = flag.String("db-name", "chat.db", "database name")
+	logFile       = flag.String("log-file", "chat.log", "log file")
+	url           = flag.String("url", ":8081", "url")
+	mLimit        = flag.Int("message-limit", 100, "message limit")
+	certFile      = flag.String("cert-file", "server-cert.pem", "cert file")
+	keyFile       = flag.String("key-file", "server-key.pem", "key file")
+	firstUserMode = flag.Bool("first-user-mode", false, "first user mode")
 )
 
 type Server struct {
@@ -56,7 +57,7 @@ type Token struct {
 	Hash      []byte
 }
 
-func NewServer(url string) *Server {
+func NewServer(url string, firstUser bool) *Server {
 	defer func(t time.Time) {
 		fmt.Println("NewServer->time taken: ", time.Since(t))
 	}(time.Now())
@@ -87,12 +88,6 @@ func NewServer(url string) *Server {
 		Messagechan: make(chan WSMessage, 20),
 	}
 
-	// pdf, err := os.ReadFile("static/scream.pdf")
-	// if err != nil {
-	// 	log.Println("error reading pdf", err)
-	// 	log.Fatal(err)
-	// }
-
 	s := &Server{
 		WSHandler: wsh,
 		Logger:    myLogger,
@@ -108,7 +103,6 @@ func NewServer(url string) *Server {
 	s.Gateway.HandleFunc("/access", s.LoginView)
 	s.Gateway.HandleFunc("/login", s.LoginHandler)
 	s.Gateway.HandleFunc("/logout", s.LogoutHandler)
-	s.Gateway.HandleFunc("/add-user", s.AddUserView)
 	s.Gateway.HandleFunc("/add-room", s.AddRoomView)
 	s.Gateway.HandleFunc("/addroom", s.AddRoomToUserRoomsHandler)
 	s.Gateway.HandleFunc("/adduser", s.AddUserHandler)
@@ -124,6 +118,11 @@ func NewServer(url string) *Server {
 	s.Gateway.Handle("/static/", http.StripPrefix("/static/", s.FileServer()))
 	// s.Gateway.HandleFunc("/messagehist", s.MessageHistoryHandler)
 	s.Gateway.Handle("/send-message", s.ValidateToken(http.HandlerFunc(s.MessageHandler)))
+	if firstUser {
+		s.Gateway.HandleFunc("/add-user", s.AddUserView)
+	} else {
+		s.Gateway.Handle("/add-user", s.ValidateToken(http.HandlerFunc(s.AddUserView)))
+	}
 	s.Gateway.Handle("/splash", s.ValidateToken(http.HandlerFunc(s.SplashView)))
 	s.Gateway.Handle("/ws/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		s.ServeWS(rooms, w, r)

@@ -28,7 +28,7 @@ func main() {
 	}
 	cfg.Certificates = []tls.Certificate{cert}
 
-	s := NewServer(*url)
+	s := NewServer(*url, *firstUserMode)
 	server := &http.Server{
 		Addr:      *url,
 		Handler:   s.Session.LoadAndSave(s.Gateway),
