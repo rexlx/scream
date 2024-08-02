@@ -234,7 +234,6 @@ func (s *Server) AddUser(u User) error {
 		if err != nil {
 			return err
 		}
-		s.Logger.Println("adding user", u.Email)
 		return b.Put([]byte(u.Email), v)
 	})
 }
@@ -260,10 +259,6 @@ func (s *Server) GetToken(token string) (*Token, error) {
 	defer s.Memory.RUnlock()
 	var tk Token
 	err := s.DB.View(func(tx *bbolt.Tx) error {
-		// b, err := tx.CreateBucketIfNotExists([]byte(*tokenBucket))
-		// if err != nil {
-		// 	return err
-		// }
 		b := tx.Bucket([]byte(*tokenBucket))
 		v := b.Get([]byte(token))
 		if v == nil {
@@ -282,7 +277,6 @@ func (s *Server) AddRoom(r *Room) {
 
 func SanitizeHTML(s string) string {
 	s = html.EscapeString(s)
-	// fmt.Println("SanitizeHTML->s: ", s)
 	return s
 }
 
