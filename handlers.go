@@ -100,6 +100,7 @@ func (s *Server) MessageHandler(w http.ResponseWriter, r *http.Request) {
 	}(time.Now())
 	tk, err := s.GetTokenFromSession(r)
 	if err != nil {
+		w.Header().Set("HX-Redirect", "/access")
 		http.Error(w, "error getting token", http.StatusInternalServerError)
 		return
 	}

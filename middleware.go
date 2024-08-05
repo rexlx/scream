@@ -10,6 +10,7 @@ func (s *Server) ValidateToken(next http.Handler) http.Handler {
 		token, err := s.GetTokenFromSession(r)
 		if err != nil {
 			s.Logger.Println("error getting token from session", err)
+			w.Header().Set("HX-Redirect", "/access")
 			http.Error(w, "error getting token from session", http.StatusUnauthorized)
 			return
 		}
@@ -21,6 +22,7 @@ func (s *Server) ValidateToken(next http.Handler) http.Handler {
 		}
 		if tk.ExpiresAt.Before(time.Now()) {
 			s.Logger.Println("token expired", tk.ExpiresAt)
+			w.Header().Set("HX-Redirect", "/access")
 			http.Error(w, "token expired", http.StatusUnauthorized)
 			return
 		}
