@@ -163,7 +163,30 @@ func (s *Server) AddUserView(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) RoomHandler(w http.ResponseWriter, r *http.Request) {
-	roomName := getRoomNameFromURL(r.URL.Path)
+	parts := strings.Split(r.URL.Path, "/")
+	if len(parts) < 3 {
+		http.Error(w, "room not found", http.StatusNotFound)
+		return
+	}
+
+	roomName := parts[2]
+	if len(parts) == 4 {
+		// the case where a user comments on anothers post
+		userID := parts[3]
+		u, err := s.GetUserByID(userID)
+		if err != nil {
+			http.Error(w, "user not found", http.StatusNotFound)
+			return
+		}
+		for _, v := range u.Posts {
+			if v.ID == roomName {
+				roomName = v.Content
+				break
+			}
+		}
+	}
+
+	// roomName := getRoomNameFromURL(r.URL.Path)
 	if roomName == "" {
 		redirectToLogin(w, r)
 		return
@@ -411,7 +434,7 @@ func (s *Server) UserProfileHandler(w http.ResponseWriter, r *http.Request) {
 		</div>`
 	postDiv := `<div class="box has-background-black mydisplay">
 		<p class="has-text-info">%v</p>
-		<a href="/room/%v" target="_blank" rel="noopener noreferrer" class="has-text-white">comment</a>
+		<a href="/room/%v/%v" target="_blank" rel="noopener noreferrer" class="has-text-white">comment</a>
 		</div>`
 	tk, err := s.GetTokenFromSession(r)
 	if err != nil {
@@ -436,7 +459,7 @@ func (s *Server) UserProfileHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	posts := ""
 	for _, v := range u.Posts {
-		posts += fmt.Sprintf(postDiv, v.Content, v.ID)
+		posts += fmt.Sprintf(postDiv, v.Content, v.ID, userid)
 	}
 	posts = fmt.Sprintf(postsContent, posts)
 	out := fmt.Sprintf(basicContent, u.Handle, u.About)
