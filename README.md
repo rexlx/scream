@@ -22,8 +22,14 @@ a work in progress but otherwise functional
 ```
 ./scream -h
 Usage of ./scream:
+  -cert-file string
+    	cert file (default "server-cert.pem")
   -db-name string
     	database name (default "chat.db")
+  -first-user-mode
+    	first user mode
+  -key-file string
+    	key file (default "server-key.pem")
   -log-file string
     	log file (default "chat.log")
   -message-limit int
@@ -31,7 +37,7 @@ Usage of ./scream:
   -token-bucket string
     	token bucket (default "tokens")
   -url string
-    	url (default ":8080")
+    	url (default ":8081")
   -user-bucket string
     	user bucket (default "users")
 ```
