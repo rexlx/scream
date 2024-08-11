@@ -11,8 +11,8 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	defer func(t time.Time) {
 		s.Logger.Println("LoginHandler->time taken: ", time.Since(t))
 	}(time.Now())
-	_tk, _ := s.GetTokenFromSession(r)
-	if _tk != "" {
+	tkn, _ := s.GetTokenFromSession(r)
+	if tkn != "" {
 		fmt.Fprintf(w, authNotification, "is-warning", "already logged in")
 		return
 	}
@@ -36,7 +36,7 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	u.updateHandle()
-	tk, err := u.Token.CreateToken(u.ID, time.Hour)
+	tk, err := u.Token.CreateToken(u.ID, s.Session.Lifetime)
 	if err != nil {
 		s.Logger.Println("error creating token", err)
 		fmt.Fprintf(w, authNotification, "is-danger", "an error occured when creating token...")

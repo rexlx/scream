@@ -18,7 +18,7 @@ import (
 
 	"github.com/alexedwards/scs/v2"
 	"github.com/google/uuid"
-	"go.etcd.io/bbolt"
+	"go.etcd.io/bbolt" // this shows an error even though it is installed
 )
 
 var (
@@ -35,7 +35,6 @@ var (
 
 type Server struct {
 	*WSHandler
-	// HelpPDF []byte
 	Logger  *log.Logger
 	DB      *bbolt.DB
 	Gateway *http.ServeMux
@@ -57,6 +56,7 @@ type Token struct {
 	Hash      []byte
 }
 
+// this is where we define the routes
 func NewServer(url string, firstUser bool) *Server {
 	defer func(t time.Time) {
 		fmt.Println("NewServer->time taken: ", time.Since(t))
