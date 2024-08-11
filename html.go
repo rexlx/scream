@@ -78,6 +78,18 @@ var loginView = `<!DOCTYPE html>
     body {
       background-color: #0b141c;
     }
+    .animate-spin {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+
+  }
+}
   </style>
 </head>
 
@@ -103,8 +115,12 @@ var loginView = `<!DOCTYPE html>
                 <input class="input is-outlined" type="password" name="password" placeholder="Enter your password">
               </div>
             </div>
-
-            <button class="button is-info is-outlined" type="submit">login</button>
+            <div>
+            <button class="button is-info is-outlined" type="submit" hx-indicator="#progressMeter">login</button>
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#313e97" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="htmx-indicator animate-spin">
+  <circle cx="12" cy="12" r="10"></circle>
+</svg>
+            </div>
           </form>
         </div>
       </div>

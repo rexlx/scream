@@ -8,6 +8,9 @@ import (
 )
 
 func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
+	defer func(t time.Time) {
+		s.Logger.Println("LoginHandler->time taken: ", time.Since(t))
+	}(time.Now())
 	_tk, _ := s.GetTokenFromSession(r)
 	if _tk != "" {
 		fmt.Fprintf(w, authNotification, "is-warning", "already logged in")
@@ -95,9 +98,9 @@ func (s *Server) clearAuthNotificationHandler(w http.ResponseWriter, r *http.Req
 func (s *Server) MessageHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO we could get the user and pass the userid to the WSHMessage
 	// gaining the ability to link the div to the user!
-	defer func(t time.Time) {
-		s.Logger.Println("MessageHandler->time taken: ", time.Since(t))
-	}(time.Now())
+	// defer func(t time.Time) {
+	// 	s.Logger.Println("MessageHandler->time taken: ", time.Since(t))
+	// }(time.Now())
 	tk, err := s.GetTokenFromSession(r)
 	if err != nil {
 		w.Header().Set("HX-Redirect", "/access")
@@ -507,14 +510,6 @@ func (s *Server) ProfileHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "user updated")
 }
 
-func getRoomNameFromURL(url string) string {
-	parts := strings.Split(url, "/")
-	if len(parts) >= 3 && parts[1] == "room" {
-		return parts[2]
-	}
-	return ""
-}
-
 func redirectToLogin(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/login", http.StatusFound)
 }
@@ -523,13 +518,9 @@ func parseCommand(c string) string {
 	if c == "" {
 		return ""
 	}
-	// ~link__https://foo.bar/thing__link text here
 	out := `<a href="%v" class="has-text-link">%v</a>`
 	parts := strings.Split(c, "__")
-	// fmt.Println(parts, len(parts))
-	// if len(parts) < 3 || parts[0] != "~link" {
-	// 	return c
-	// }
+
 	switch parts[0] {
 	case "~link":
 		if len(parts) < 3 {
