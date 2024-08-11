@@ -1,13 +1,5 @@
 package main
 
-// type Style struct {
-// 	Background string
-// }
-
-// var style = Style{
-//   Background: "#0b141c",
-// }
-
 var authNotification = `<div class="notification %v" id="notty">
   <button class="delete" hx-get="/can" hx-trigger="click" hx-target="#notty" hx-swap="outerHTML"></button>
   %v
@@ -78,18 +70,21 @@ var loginView = `<!DOCTYPE html>
     body {
       background-color: #0b141c;
     }
-    .animate-spin {
-  animation: spin 1s linear infinite;
-}
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
 
-  }
-}
+    .animate-spin {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+
+      }
+    }
   </style>
 </head>
 
@@ -116,10 +111,12 @@ var loginView = `<!DOCTYPE html>
               </div>
             </div>
             <div>
-            <button class="button is-info is-outlined" type="submit" hx-indicator="#progressMeter">login</button>
-            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#313e97" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="htmx-indicator animate-spin">
-  <circle cx="12" cy="12" r="10"></circle>
-</svg>
+              <button class="button is-info is-outlined" type="submit" hx-indicator="#progressMeter">login</button>
+              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none"
+                stroke="#313e97" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="htmx-indicator animate-spin">
+                <circle cx="12" cy="12" r="10"></circle>
+              </svg>
             </div>
           </form>
         </div>
@@ -128,6 +125,7 @@ var loginView = `<!DOCTYPE html>
   </div>
 
 </body>
+
 </html>
 `
 
@@ -146,7 +144,7 @@ var chatView = `<!DOCTYPE html>
       var chatBox = document.getElementById("chat-box");
       chatBox.scrollTop = chatBox.scrollHeight;
     });
-    
+
   </script>
   <style>
     .mydisplay {
@@ -175,7 +173,7 @@ var chatView = `<!DOCTYPE html>
         <aside class="menu">
           <p class="menu-label">menu</p>
           <ul class="menu-list">
-          <li><a href="/help" target="_blank" rel="noopener noreferrer" class="has-text-info">help</a></li>
+            <li><a href="/help" target="_blank" rel="noopener noreferrer" class="has-text-info">help</a></li>
             <li><a hx-post="/logout" class="has-text-info">logout</a></li>
             <li><a href="/add-room" class="has-text-info">add room</a></li>
             <li><a href="/profile" hx-boost="true" class="has-text-info">profile</a></li>
