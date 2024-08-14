@@ -228,6 +228,18 @@ func (s *Server) RoomHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (s *Server) StatHandler(w http.ResponseWriter, r *http.Request) {
+	out := ""
+	graphDiv := `<div class="mb-3">
+	<h1 class="title is-1">%v</h1>
+	%v</div>`
+	for k, v := range s.Graphs {
+		out += fmt.Sprintf(graphDiv, k, v)
+	}
+	// fmt.Println(out)
+	fmt.Fprint(w, out)
+}
+
 func (s *Server) SplashView(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, splashView)
 }
@@ -372,6 +384,7 @@ func (s *Server) GetRoomByName(name string) (*Room, error) {
 	defer s.Memory.RUnlock()
 	for k, v := range s.Rooms {
 		if v.Name == name {
+			s.Stats["room_queries"]++
 			return s.Rooms[k], nil
 		}
 

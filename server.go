@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
@@ -35,14 +36,17 @@ var (
 
 type Server struct {
 	*WSHandler
-	Logger  *log.Logger
-	DB      *bbolt.DB
-	Gateway *http.ServeMux
-	Memory  *sync.RWMutex
-	Context *context.Context
-	Rooms   map[string]*Room
-	URL     string
-	Session *scs.SessionManager
+	Logger      *log.Logger
+	DB          *bbolt.DB
+	Gateway     *http.ServeMux
+	Memory      *sync.RWMutex
+	Context     *context.Context
+	Rooms       map[string]*Room
+	Stats       map[string]float64
+	Coordinates map[string][]float64
+	Graphs      map[string]string
+	URL         string
+	Session     *scs.SessionManager
 }
 
 type Token struct {
@@ -56,7 +60,8 @@ type Token struct {
 	Hash      []byte
 }
 
-// this is where we define the routes
+// TODO were not actually storing stats in any sort of time series based way
+// i think literally just a single point in time lol
 func NewServer(url string, firstUser bool) *Server {
 	defer func(t time.Time) {
 		fmt.Println("NewServer->time taken: ", time.Since(t))
@@ -81,6 +86,9 @@ func NewServer(url string, firstUser bool) *Server {
 	}
 	rooms := make(map[string]*Room)
 
+	stats := make(map[string]float64)
+	graphs := make(map[string]string)
+	coords := make(map[string][]float64)
 	wsh := &WSHandler{
 		Stop:        make(chan struct{}),
 		Conn:        nil,
@@ -89,15 +97,18 @@ func NewServer(url string, firstUser bool) *Server {
 	}
 
 	s := &Server{
-		WSHandler: wsh,
-		Logger:    myLogger,
-		DB:        db,
-		Gateway:   http.NewServeMux(),
-		Memory:    mem,
-		Context:   nil,
-		Rooms:     rooms,
-		URL:       url,
-		Session:   sessionMgr,
+		Graphs:      graphs,
+		Coordinates: coords,
+		Stats:       stats,
+		WSHandler:   wsh,
+		Logger:      myLogger,
+		DB:          db,
+		Gateway:     http.NewServeMux(),
+		Memory:      mem,
+		Context:     nil,
+		Rooms:       rooms,
+		URL:         url,
+		Session:     sessionMgr,
 	}
 	// s.Gateway.HandleFunc("/", s.RoomHandler)
 	s.Gateway.HandleFunc("/access", s.LoginView)
@@ -118,6 +129,7 @@ func NewServer(url string, firstUser bool) *Server {
 	s.Gateway.Handle("/static/", http.StripPrefix("/static/", s.FileServer()))
 	// s.Gateway.HandleFunc("/messagehist", s.MessageHistoryHandler)
 	s.Gateway.Handle("/send-message", s.ValidateToken(http.HandlerFunc(s.MessageHandler)))
+	s.Gateway.Handle("/stats", s.ValidateToken(http.HandlerFunc(s.StatHandler)))
 	if firstUser {
 		s.Gateway.HandleFunc("/add-user", s.AddUserView)
 	} else {
@@ -132,6 +144,7 @@ func NewServer(url string, firstUser bool) *Server {
 	s.Gateway.Handle("/user/", s.ValidateToken(http.HandlerFunc(s.UserProfileHandler)))
 	s.Gateway.Handle("/messagehist/", s.ValidateToken(http.HandlerFunc(s.MessageHistoryHandler)))
 	s.Gateway.Handle("/", http.HandlerFunc(s.LoginView))
+	// s.Stats["start"] = float64(time.Now().Unix())
 	return s
 }
 
@@ -177,6 +190,7 @@ func (s *Server) TestToken(app *Server, r *http.Request) (bool, error) {
 func (s *Server) GetUserByEmail(email string) (User, error) {
 	s.Memory.RLock()
 	defer s.Memory.RUnlock()
+	s.Stats["user_queries"]++
 	var user User
 	err := s.DB.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(*userBucket))
@@ -225,6 +239,7 @@ func (s *Server) GetTokenFromSession(r *http.Request) (string, error) {
 func (s *Server) AddUser(u User) error {
 	s.Memory.Lock()
 	defer s.Memory.Unlock()
+	s.Stats["user_saves"]++
 	return s.DB.Update(func(tx *bbolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(*userBucket))
 		if err != nil {
@@ -241,6 +256,7 @@ func (s *Server) AddUser(u User) error {
 func (s *Server) SaveToken(tk *Token) error {
 	s.Memory.Lock()
 	defer s.Memory.Unlock()
+	s.Stats["token_saves"]++
 	return s.DB.Update(func(tx *bbolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(*tokenBucket))
 		if err != nil {
@@ -264,6 +280,7 @@ func (s *Server) GetToken(token string) (*Token, error) {
 		if v == nil {
 			return nil
 		}
+		s.Stats["token_queries"]++
 		return tk.UnmarshalBinary(v)
 	})
 	return &tk, err
@@ -272,6 +289,7 @@ func (s *Server) GetToken(token string) (*Token, error) {
 func (s *Server) AddRoom(r *Room) {
 	s.Memory.Lock()
 	defer s.Memory.Unlock()
+	s.Stats["room_created"]++
 	s.Rooms[r.ID] = r
 }
 
@@ -323,4 +341,68 @@ func (s *Server) CleanUpTokens() error {
 		}
 		return nil
 	})
+}
+
+func (s *Server) UpdateGraphs() {
+	s.Memory.Lock()
+	for i, e := range s.Stats {
+		_, ok := s.Coordinates[i]
+		if !ok {
+			s.Coordinates[i] = make([]float64, 0)
+		}
+		if len(s.Coordinates[i]) > 99 {
+			s.Coordinates[i] = s.Coordinates[i][1:]
+		}
+		s.Coordinates[i] = append(s.Coordinates[i], e)
+		// s.Graphs[i] = s.CreatePolyline(i, s.Coordinates[i], 180, 60)
+	}
+	s.Memory.Unlock()
+	client := http.Client{}
+	out, err := json.Marshal(s.Coordinates)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	req, err := http.NewRequest("POST", "http://localhost:8081/graph", bytes.NewBuffer(out))
+	if err != nil {
+		fmt.Println(err)
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer resp.Body.Close()
+	var resData map[string]interface{}
+	err = json.NewDecoder(resp.Body).Decode(&resData)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(resData)
+	// fmt.Println(s.Stats, s.Graphs)
+}
+
+func (s *Server) CreatePolyline(name string, data []float64, width, height int) string {
+	var coords string
+	maxVlaue := findMax(data)
+	scaleX := float64(width) / float64(len(data))
+	scaleY := float64(height) / maxVlaue
+	for i, v := range data {
+		x := float64(i) * scaleX
+		y := float64(height) - (v * scaleY)
+		coords += fmt.Sprintf("%f,%f ", x, y)
+		fmt.Printf("i %v v %v -> x %v y %v\n", i, v, x, y)
+	}
+	return fmt.Sprintf(polyLineSVG, width, height, coords)
+}
+
+func findMax(data []float64) float64 {
+	var max float64
+	for _, v := range data {
+		if v > max {
+			max = v
+		}
+	}
+	return max
 }

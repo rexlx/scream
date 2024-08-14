@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 func main() {
@@ -35,6 +36,12 @@ func main() {
 		TLSConfig: cfg,
 	}
 	s.CleanUpTokens()
+	ticker := time.NewTicker(1 * time.Minute)
+	go func() {
+		for range ticker.C {
+			s.UpdateGraphs()
+		}
+	}()
 	s.Logger.Println("server started")
 	fmt.Println("server started", s.URL)
 	err = server.ListenAndServeTLS("", "")

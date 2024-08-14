@@ -433,6 +433,10 @@ var splashView = `<!DOCTYPE html>
                 <a href="/room/welcome" class="button is-info">enter the welcome chat</a>
                 <a href="/help" class="button is-info">get help</a>
             </div>
+            <div class="box has-background-black">
+                <h2 class="title is-2 has-text-info">stats</h2>
+                <div hx-get="/stats" hx-trigger="load"> </div>
+            </div>
         </div>
     </div>
 </div>
@@ -440,3 +444,6 @@ var splashView = `<!DOCTYPE html>
 </body>
 </html>
 `
+var polyLineSVG = `<svg width="%v" height="%v" xmlns="http://www.w3.org/2000/svg">
+  <polyline points="%v" fill="none" stroke="blue" stroke-width="1" />
+</svg>`
