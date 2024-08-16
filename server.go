@@ -14,6 +14,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime"
 	"sync"
 	"time"
 
@@ -345,7 +346,19 @@ func (s *Server) CleanUpTokens() error {
 }
 
 func (s *Server) UpdateGraphs() {
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
 	s.Memory.Lock()
+	malloc := float64(m.Alloc)
+	s.Stats["malloc"] = malloc
+	s.Stats["goroutines"] = float64(runtime.NumGoroutine())
+	s.Stats["heap"] = float64(m.HeapAlloc)
+	s.Stats["heap_objects"] = float64(m.HeapObjects)
+	s.Stats["stack"] = float64(m.StackInuse)
+	s.Stats["alloc"] = float64(m.Alloc) / 1024
+	s.Stats["total_alloc"] = float64(m.TotalAlloc) / 1024
+	s.Stats["sys"] = float64(m.Sys) / 1024
+	s.Stats["num_gc"] = float64(m.NumGC)
 	for i, e := range s.Stats {
 		_, ok := s.Coordinates[i]
 		if !ok {
