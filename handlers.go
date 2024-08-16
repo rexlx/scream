@@ -229,15 +229,17 @@ func (s *Server) RoomHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) StatHandler(w http.ResponseWriter, r *http.Request) {
-	out := ""
-	graphDiv := `<div class="mb-3">
-	<h1 class="title is-1">%v</h1>
-	%v</div>`
-	for k, v := range s.Graphs {
-		out += fmt.Sprintf(graphDiv, k, v)
-	}
-	// fmt.Println(out)
-	fmt.Fprint(w, out)
+	// out := ""
+	// graphDiv := `<div class="mb-3">
+	// <h1 class="title is-1">%v</h1>
+	// %v</div>`
+	// for k, v := range s.Graphs {
+	// 	out += fmt.Sprintf(graphDiv, k, v)
+	// }
+
+	s.Memory.RLock()
+	defer s.Memory.RUnlock()
+	fmt.Fprint(w, s.GraphCache)
 }
 
 func (s *Server) SplashView(w http.ResponseWriter, r *http.Request) {

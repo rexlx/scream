@@ -45,6 +45,7 @@ type Server struct {
 	Stats       map[string]float64
 	Coordinates map[string][]float64
 	Graphs      map[string]string
+	GraphCache  string
 	URL         string
 	Session     *scs.SessionManager
 }
@@ -379,8 +380,12 @@ func (s *Server) UpdateGraphs() {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(resData)
-	// fmt.Println(s.Stats, s.Graphs)
+	val, ok := resData["chart"]
+	if !ok {
+		fmt.Println("no chart in response")
+		return
+	}
+	s.GraphCache = val.(string)
 }
 
 func (s *Server) CreatePolyline(name string, data []float64, width, height int) string {

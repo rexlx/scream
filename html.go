@@ -435,7 +435,7 @@ var splashView = `<!DOCTYPE html>
             </div>
             <div class="box has-background-black">
                 <h2 class="title is-2 has-text-info">stats</h2>
-                <div hx-get="/stats" hx-trigger="load"> </div>
+                <a href="/stats" class="button">stats</a>
             </div>
         </div>
     </div>

@@ -23,7 +23,7 @@ func (s *Server) CreateGraph(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		s.Logger.Printf("Creating graph for %s\n", k)
-		chart := createLineChart(v)
+		chart := createLineChart(k, v)
 		err := chart.Render(&buf)
 		if err != nil {
 			s.Logger.Println("your buff thing broke", err)
