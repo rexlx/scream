@@ -19,7 +19,7 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("username")
 	password := r.FormValue("password")
 	u, err := s.GetUserByEmail(email)
-	if err != nil {
+	if err != nil || u.Email == "" {
 		s.Logger.Println("user not found", email)
 		fmt.Fprintf(w, authNotification, "is-danger", "that straight up did not work")
 		return
