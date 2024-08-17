@@ -8,15 +8,9 @@ import (
 )
 
 func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
-	var failed bool
-	defer func(t time.Time, f bool) {
-		if f {
-			s.Memory.Lock()
-			s.Stats["failed_logins"]++
-			s.Memory.Unlock()
-		}
+	defer func(t time.Time) {
 		s.Logger.Println("LoginHandler->time taken: ", time.Since(t))
-	}(time.Now(), failed)
+	}(time.Now())
 	tkn, _ := s.GetTokenFromSession(r)
 	if tkn != "" {
 		fmt.Fprintf(w, authNotification, "is-warning", "already logged in")
@@ -27,19 +21,16 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	u, err := s.GetUserByEmail(email)
 	if err != nil {
 		s.Logger.Println("user not found", email)
-		failed = true
 		fmt.Fprintf(w, authNotification, "is-danger", "that straight up did not work")
 		return
 	}
 	ok, err := u.PasswordMatches(password)
 	if err != nil {
 		s.Logger.Println("error checking password", err, email)
-		failed = true
 		fmt.Fprintf(w, authNotification, "is-danger", "that straight up did not work")
 		return
 	}
 	if !ok {
-		failed = true
 		s.Logger.Println("password does not match", email)
 		fmt.Fprintf(w, authNotification, "is-danger", "that straight up did not work")
 		return
@@ -47,7 +38,6 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	u.updateHandle()
 	tk, err := u.Token.CreateToken(u.ID, s.Session.Lifetime)
 	if err != nil {
-		failed = true
 		s.Logger.Println("error creating token", err)
 		fmt.Fprintf(w, authNotification, "is-danger", "an error occured when creating token...")
 		return
@@ -56,19 +46,20 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	tk.Handle = u.Handle
 	err = s.SaveToken(tk)
 	if err != nil {
-		failed = true
 		s.Logger.Println("error saving token", err)
 		fmt.Fprintf(w, authNotification, "is-danger", "an error occured when saving token...")
 		return
 	}
 	err = s.AddTokenToSession(r, w, tk)
 	if err != nil {
-		failed = true
 		s.Logger.Println("error adding token to session", err)
 		fmt.Fprintf(w, authNotification, "is-danger", "an error occured when adding token to session...")
 		return
 	}
 	s.Logger.Println("login successful", u.Email)
+	s.Memory.Lock()
+	s.Stats["logins"]++
+	s.Memory.Unlock()
 	w.Header().Set("HX-Redirect", "/splash")
 	fmt.Fprintf(w, authNotification, "is-success", "login successful")
 	// theirRoom := fmt.Sprintf("/room/%s", u.ID)

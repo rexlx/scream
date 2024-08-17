@@ -199,6 +199,9 @@ func (s *Server) GetUserByEmail(email string) (User, error) {
 		v := b.Get([]byte(email))
 		if v == nil {
 			s.Logger.Println("user not found")
+			s.Memory.Lock()
+			defer s.Memory.Unlock()
+			s.Stats["user_not_found"]++
 			return nil
 		}
 
