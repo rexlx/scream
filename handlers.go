@@ -20,17 +20,23 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	u, err := s.GetUserByEmail(email)
 	if err != nil {
+		s.Memory.Lock()
+		s.Stats["user_not_found"]++
+		s.Memory.Unlock()
 		s.Logger.Println("user not found", email)
 		fmt.Fprintf(w, authNotification, "is-danger", "that straight up did not work")
 		return
 	}
 	ok, err := u.PasswordMatches(password)
 	if err != nil {
-		s.Logger.Println("error checking password", err)
+		s.Logger.Println("error checking password", err, email)
 		fmt.Fprintf(w, authNotification, "is-danger", "that straight up did not work")
 		return
 	}
 	if !ok {
+		s.Memory.Lock()
+		s.Stats["user_but_bad_pwd"]++
+		s.Memory.Unlock()
 		s.Logger.Println("password does not match", email)
 		fmt.Fprintf(w, authNotification, "is-danger", "that straight up did not work")
 		return
@@ -138,6 +144,9 @@ func (s *Server) MessageHandler(w http.ResponseWriter, r *http.Request) {
 	}(message, roomid, token)
 	out := `<input class="input is-outlined" type="text" name="message" id="messageBox" hx-swap-oob="true" placeholder="Type your message...">`
 	fmt.Fprint(w, out)
+	s.Memory.Lock()
+	s.Stats["messages_sent"]++
+	s.Memory.Unlock()
 }
 
 func (s *Server) AddUserHandler(w http.ResponseWriter, r *http.Request) {
