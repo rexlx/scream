@@ -190,8 +190,8 @@ func (s *Server) TestToken(app *Server, r *http.Request) (bool, error) {
 }
 
 func (s *Server) GetUserByEmail(email string) (User, error) {
-	s.Memory.RLock()
-	defer s.Memory.RUnlock()
+	s.Memory.Lock()
+	defer s.Memory.Unlock()
 	s.Stats["user_queries"]++
 	var user User
 	err := s.DB.View(func(tx *bbolt.Tx) error {
@@ -199,8 +199,6 @@ func (s *Server) GetUserByEmail(email string) (User, error) {
 		v := b.Get([]byte(email))
 		if v == nil {
 			s.Logger.Println("user not found")
-			s.Memory.Lock()
-			defer s.Memory.Unlock()
 			s.Stats["user_not_found"]++
 			return nil
 		}
