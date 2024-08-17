@@ -36,7 +36,7 @@ func main() {
 		TLSConfig: cfg,
 	}
 	s.CleanUpTokens()
-	ticker := time.NewTicker(1 * time.Minute)
+	ticker := time.NewTicker(2 * time.Minute)
 	go func() {
 		for range ticker.C {
 			s.UpdateGraphs()

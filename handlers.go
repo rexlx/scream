@@ -8,9 +8,15 @@ import (
 )
 
 func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
-	defer func(t time.Time) {
+	var failed bool
+	defer func(t time.Time, f bool) {
+		if f {
+			s.Memory.Lock()
+			s.Stats["failed_logins"]++
+			s.Memory.Unlock()
+		}
 		s.Logger.Println("LoginHandler->time taken: ", time.Since(t))
-	}(time.Now())
+	}(time.Now(), failed)
 	tkn, _ := s.GetTokenFromSession(r)
 	if tkn != "" {
 		fmt.Fprintf(w, authNotification, "is-warning", "already logged in")
@@ -20,23 +26,20 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	u, err := s.GetUserByEmail(email)
 	if err != nil {
-		s.Memory.Lock()
-		s.Stats["user_not_found"]++
-		s.Memory.Unlock()
 		s.Logger.Println("user not found", email)
+		failed = true
 		fmt.Fprintf(w, authNotification, "is-danger", "that straight up did not work")
 		return
 	}
 	ok, err := u.PasswordMatches(password)
 	if err != nil {
 		s.Logger.Println("error checking password", err, email)
+		failed = true
 		fmt.Fprintf(w, authNotification, "is-danger", "that straight up did not work")
 		return
 	}
 	if !ok {
-		s.Memory.Lock()
-		s.Stats["user_but_bad_pwd"]++
-		s.Memory.Unlock()
+		failed = true
 		s.Logger.Println("password does not match", email)
 		fmt.Fprintf(w, authNotification, "is-danger", "that straight up did not work")
 		return
@@ -44,6 +47,7 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	u.updateHandle()
 	tk, err := u.Token.CreateToken(u.ID, s.Session.Lifetime)
 	if err != nil {
+		failed = true
 		s.Logger.Println("error creating token", err)
 		fmt.Fprintf(w, authNotification, "is-danger", "an error occured when creating token...")
 		return
@@ -52,12 +56,14 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	tk.Handle = u.Handle
 	err = s.SaveToken(tk)
 	if err != nil {
+		failed = true
 		s.Logger.Println("error saving token", err)
 		fmt.Fprintf(w, authNotification, "is-danger", "an error occured when saving token...")
 		return
 	}
 	err = s.AddTokenToSession(r, w, tk)
 	if err != nil {
+		failed = true
 		s.Logger.Println("error adding token to session", err)
 		fmt.Fprintf(w, authNotification, "is-danger", "an error occured when adding token to session...")
 		return
