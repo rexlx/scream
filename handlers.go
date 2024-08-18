@@ -9,7 +9,7 @@ import (
 
 func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	defer func(t time.Time) {
-		s.Logger.Println("LoginHandler->time taken: ", time.Since(t))
+		s.Logger.Println("LoginHandler: time taken: ", time.Since(t))
 	}(time.Now())
 	tkn, _ := s.GetTokenFromSession(r)
 	if tkn != "" {
@@ -20,7 +20,7 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	u, err := s.GetUserByEmail(email)
 	if err != nil || u.Email == "" {
-		s.Logger.Println("user not found", email)
+		s.Logger.Println("LoginHandler: user not found", email)
 		fmt.Fprintf(w, authNotification, "is-danger", "that straight up did not work")
 		return
 	}

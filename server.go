@@ -353,13 +353,15 @@ func (s *Server) UpdateGraphs() {
 	malloc := float64(m.Alloc)
 	s.Stats["malloc"] = malloc
 	s.Stats["goroutines"] = float64(runtime.NumGoroutine())
-	s.Stats["heap"] = float64(m.HeapAlloc)
+	s.Stats["heap"] = float64(m.HeapAlloc) / 1024
 	s.Stats["heap_objects"] = float64(m.HeapObjects)
-	s.Stats["stack"] = float64(m.StackInuse)
+	s.Stats["stack"] = float64(m.StackInuse) / 1024
 	s.Stats["alloc"] = float64(m.Alloc) / 1024
 	s.Stats["total_alloc"] = float64(m.TotalAlloc) / 1024
 	s.Stats["sys"] = float64(m.Sys) / 1024
 	s.Stats["num_gc"] = float64(m.NumGC)
+	s.Stats["last_gc"] = float64(m.LastGC)
+	s.Stats["pause_total_ns"] = float64(m.PauseTotalNs)
 	for i, e := range s.Stats {
 		_, ok := s.Coordinates[i]
 		if !ok {
