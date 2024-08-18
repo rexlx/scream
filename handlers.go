@@ -99,11 +99,6 @@ func (s *Server) clearAuthNotificationHandler(w http.ResponseWriter, r *http.Req
 }
 
 func (s *Server) MessageHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO we could get the user and pass the userid to the WSHMessage
-	// gaining the ability to link the div to the user!
-	// defer func(t time.Time) {
-	// 	s.Logger.Println("MessageHandler->time taken: ", time.Since(t))
-	// }(time.Now())
 	tk, err := s.GetTokenFromSession(r)
 	if err != nil {
 		w.Header().Set("HX-Redirect", "/access")

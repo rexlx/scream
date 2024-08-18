@@ -66,11 +66,11 @@ type Token struct {
 // i think literally just a single point in time lol
 func NewServer(url string, firstUser bool) *Server {
 	defer func(t time.Time) {
-		fmt.Println("NewServer->time taken: ", time.Since(t))
+		fmt.Println("NewServer: time taken: ", time.Since(t))
 	}(time.Now())
 	sessionMgr := scs.New()
 	sessionMgr.Lifetime = 24 * time.Hour
-	sessionMgr.IdleTimeout = 20 * time.Minute
+	sessionMgr.IdleTimeout = 1 * time.Hour
 	sessionMgr.Cookie.Persist = true
 	sessionMgr.Cookie.Name = "token"
 	sessionMgr.Cookie.SameSite = http.SameSiteLaxMode
@@ -351,7 +351,7 @@ func (s *Server) UpdateGraphs() {
 	runtime.ReadMemStats(&m)
 	s.Memory.Lock()
 	malloc := float64(m.Alloc)
-	s.Stats["malloc"] = malloc
+	s.Stats["malloc"] = malloc / 1024
 	s.Stats["goroutines"] = float64(runtime.NumGoroutine())
 	s.Stats["heap"] = float64(m.HeapAlloc) / 1024
 	s.Stats["heap_objects"] = float64(m.HeapObjects)
@@ -360,8 +360,8 @@ func (s *Server) UpdateGraphs() {
 	s.Stats["total_alloc"] = float64(m.TotalAlloc) / 1024
 	s.Stats["sys"] = float64(m.Sys) / 1024
 	s.Stats["num_gc"] = float64(m.NumGC)
-	s.Stats["last_gc"] = float64(m.LastGC)
-	s.Stats["pause_total_ns"] = float64(m.PauseTotalNs)
+	// s.Stats["last_gc"] = float64(m.LastGC) / 1000000
+	s.Stats["pause_total_ns"] = float64(m.PauseTotalNs) / 1000000
 	for i, e := range s.Stats {
 		_, ok := s.Coordinates[i]
 		if !ok {
