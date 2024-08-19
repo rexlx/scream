@@ -25,6 +25,7 @@ type WSMessage struct {
 }
 
 type WSHandler struct {
+	TTL         time.Duration
 	Stop        chan struct{}
 	Conn        *websocket.Conn
 	Memory      *sync.RWMutex
@@ -32,12 +33,21 @@ type WSHandler struct {
 }
 
 func (wsh *WSHandler) Write(rooms map[string]*Room) {
+	var lastMessage time.Time
+	var ticker = time.NewTicker(wsh.TTL)
+	fmt.Println("WSHandler.Write: new writer")
 	defer wsh.Conn.Close()
-	// defer fmt.Println("WSHandler.Write: closing connection")
+	defer fmt.Println("WSHandler.Write: closing connection")
 dasWriter:
 	for {
 		select {
+		case <-ticker.C:
+			if time.Since(lastMessage) > wsh.TTL {
+				fmt.Println("WSHandler.Write: closing connection due to inactivity")
+				break dasWriter
+			}
 		case message := <-wsh.Messagechan:
+			lastMessage = time.Now()
 			// fmt.Printf("got message %+v", message)
 			room, ok := rooms[message.RoomID]
 			if !ok {

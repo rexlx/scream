@@ -207,6 +207,9 @@ func (s *Server) RoomHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	go func(tk string, roomName string) {
+		defer func(tk string, roomName string) {
+			fmt.Println(time.Now(), "userHistoryUpdate: done", tk, roomName)
+		}(tk, roomName)
 		token, err := s.GetToken(tk)
 		if err != nil {
 			fmt.Println("userHistoryUpdate: error getting token", err)

@@ -92,6 +92,7 @@ func NewServer(url string, firstUser bool) *Server {
 	graphs := make(map[string]string)
 	coords := make(map[string][]float64)
 	wsh := &WSHandler{
+		TTL:         2 * time.Hour,
 		Stop:        make(chan struct{}),
 		Conn:        nil,
 		Memory:      &sync.RWMutex{},
