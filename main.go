@@ -37,12 +37,12 @@ func main() {
 		TLSConfig: cfg,
 	}
 	s.CleanUpTokens()
-	ticker := time.NewTicker(2 * time.Minute)
-	go func() {
+	ticker := time.NewTicker(*updateFreq)
+	go func(t time.Duration) {
 		for range ticker.C {
-			s.UpdateGraphs()
+			s.UpdateGraphs(t)
 		}
-	}()
+	}(*updateFreq)
 	s.Logger.Println("server started")
 	fmt.Println("server started", s.URL)
 	err = server.ListenAndServeTLS("", "")

@@ -33,6 +33,7 @@ var (
 	certFile      = flag.String("cert-file", "server-cert.pem", "cert file")
 	keyFile       = flag.String("key-file", "server-key.pem", "key file")
 	firstUserMode = flag.Bool("first-user-mode", false, "first user mode")
+	updateFreq    = flag.Duration("update-freq", 2*time.Minute, "update frequency")
 )
 
 type Server struct {
@@ -241,6 +242,7 @@ func (s *Server) GetTokenFromSession(r *http.Request) (string, error) {
 }
 
 func (s *Server) AddUser(u User) error {
+	u.UpdatedAt = time.Now()
 	s.Memory.Lock()
 	defer s.Memory.Unlock()
 	s.Stats["user_saves"]++
@@ -347,7 +349,7 @@ func (s *Server) CleanUpTokens() error {
 	})
 }
 
-func (s *Server) UpdateGraphs() {
+func (s *Server) UpdateGraphs(t time.Duration) {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
 	s.Memory.Lock()
@@ -361,6 +363,8 @@ func (s *Server) UpdateGraphs() {
 	s.Stats["total_alloc"] = float64(m.TotalAlloc) / 1024
 	s.Stats["sys"] = float64(m.Sys) / 1024
 	s.Stats["num_gc"] = float64(m.NumGC)
+	s.Stats["poll_time"] = float64(time.Now().Unix())
+	s.Stats["poll_interval"] = float64(t.Seconds())
 	// s.Stats["last_gc"] = float64(m.LastGC) / 1000000
 	s.Stats["pause_total_ns"] = float64(m.PauseTotalNs) / 1000000
 	for i, e := range s.Stats {

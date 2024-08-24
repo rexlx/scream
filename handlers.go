@@ -36,6 +36,12 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	u.updateHandle()
+	err = s.AddUser(u)
+	if err != nil {
+		s.Logger.Println("error saving user", err)
+		fmt.Fprintf(w, authNotification, "is-danger", "an error occured when saving user...")
+		return
+	}
 	tk, err := u.Token.CreateToken(u.ID, s.Session.Lifetime)
 	if err != nil {
 		s.Logger.Println("error creating token", err)
