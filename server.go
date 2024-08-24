@@ -364,8 +364,8 @@ func (s *Server) UpdateGraphs(t time.Duration) {
 	s.Stats["total_alloc"] = float64(m.TotalAlloc) / 1024
 	s.Stats["sys"] = float64(m.Sys) / 1024
 	s.Stats["num_gc"] = float64(m.NumGC)
-	s.Stats["poll_time"] = float64(time.Now().Unix())
-	s.Stats["poll_interval"] = float64(t.Seconds())
+	// s.Stats["poll_time"] = float64(time.Now().Unix())
+	// s.Stats["poll_interval"] = float64(t.Seconds())
 	// s.Stats["last_gc"] = float64(m.LastGC) / 1000000
 	s.Stats["pause_total_ns"] = float64(m.PauseTotalNs) / 1000000
 	for i, e := range s.Stats {
@@ -386,7 +386,7 @@ func (s *Server) UpdateGraphs(t time.Duration) {
 		fmt.Println(err)
 		return
 	}
-	req, err := http.NewRequest("POST", "http://localhost:8081/graph", bytes.NewBuffer(out))
+	req, err := http.NewRequest("POST", "http://localhost:10440/graph", bytes.NewBuffer(out))
 	if err != nil {
 		fmt.Println(err)
 	}

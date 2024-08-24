@@ -1,4 +1,4 @@
-package charter
+package main
 
 import (
 	"flag"
@@ -12,7 +12,7 @@ var (
 
 func main() {
 	flag.Parse()
-	s, err := NewServer(*url, *logfile)
+	s, err := NewServer(*logfile)
 	if err != nil {
 		panic(err)
 	}

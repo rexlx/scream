@@ -34,7 +34,22 @@ func main() {
 	cfg.Certificates = []tls.Certificate{cert}
 
 	if *selfHostMicroService {
-		charter := charter.NewServer(*url, *firstUserMode)
+		charter, err := charter.NewServer(":10440", "charting_service")
+		if err != nil {
+			fmt.Println("error starting charter", err)
+			return
+		}
+		chartServer := &http.Server{
+			Addr:    ":10440",
+			Handler: charter.Gateway,
+		}
+
+		go func() {
+			err = chartServer.ListenAndServe()
+			if err != nil {
+				fmt.Println("error starting chart server", err)
+			}
+		}()
 	}
 
 	s := NewServer(*url, *firstUserMode)
