@@ -24,16 +24,17 @@ import (
 )
 
 var (
-	userBucket    = flag.String("user-bucket", "users", "user bucket")
-	tokenBucket   = flag.String("token-bucket", "tokens", "token bucket")
-	dbName        = flag.String("db-name", "chat.db", "database name")
-	logFile       = flag.String("log-file", "chat.log", "log file")
-	url           = flag.String("url", ":8081", "url")
-	mLimit        = flag.Int("message-limit", 100, "message limit")
-	certFile      = flag.String("cert-file", "server-cert.pem", "cert file")
-	keyFile       = flag.String("key-file", "server-key.pem", "key file")
-	firstUserMode = flag.Bool("first-user-mode", false, "first user mode")
-	updateFreq    = flag.Duration("update-freq", 2*time.Minute, "update frequency")
+	userBucket           = flag.String("user-bucket", "users", "user bucket")
+	tokenBucket          = flag.String("token-bucket", "tokens", "token bucket")
+	dbName               = flag.String("db-name", "chat.db", "database name")
+	logFile              = flag.String("log-file", "chat.log", "log file")
+	url                  = flag.String("url", ":8081", "url")
+	mLimit               = flag.Int("message-limit", 100, "message limit")
+	certFile             = flag.String("cert-file", "server-cert.pem", "cert file")
+	keyFile              = flag.String("key-file", "server-key.pem", "key file")
+	firstUserMode        = flag.Bool("first-user-mode", false, "first user mode")
+	updateFreq           = flag.Duration("update-freq", 2*time.Minute, "update frequency")
+	selfHostMicroService = flag.Bool("self-host", false, "self host microservice")
 )
 
 type Server struct {

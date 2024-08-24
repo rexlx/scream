@@ -6,7 +6,10 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
 	// _ "net/http/pprof"
+	"github.com/rexlx/scream/charter"
+	// "github.com/rexlx/scream/charter"
 )
 
 func main() {
@@ -29,6 +32,10 @@ func main() {
 		return
 	}
 	cfg.Certificates = []tls.Certificate{cert}
+
+	if *selfHostMicroService {
+		charter := charter.NewServer(*url, *firstUserMode)
+	}
 
 	s := NewServer(*url, *firstUserMode)
 	server := &http.Server{

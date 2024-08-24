@@ -1,4 +1,4 @@
-package main
+package charter
 
 import (
 	"bytes"
@@ -15,6 +15,7 @@ func (s *Server) CreateGraph(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	s.Logger.Println("creating graph")
 	var buf bytes.Buffer
 
 	for k, v := range in {
@@ -22,7 +23,7 @@ func (s *Server) CreateGraph(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "empty data", http.StatusBadRequest)
 			return
 		}
-		s.Logger.Printf("Creating graph for %s\n", k)
+		// s.Logger.Printf("Creating graph for %s\n", k)
 		chart := createLineChart(k, v)
 		err := chart.Render(&buf)
 		if err != nil {

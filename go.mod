@@ -4,6 +4,7 @@ go 1.22.1
 
 require (
 	github.com/alexedwards/scs/v2 v2.8.0
+	github.com/go-echarts/go-echarts/v2 v2.4.1
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
 	go.etcd.io/bbolt v1.3.10
