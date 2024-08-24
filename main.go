@@ -34,7 +34,7 @@ func main() {
 	cfg.Certificates = []tls.Certificate{cert}
 
 	if *selfHostMicroService {
-		charter, err := charter.NewServer(":10440", "charting_service")
+		charter, err := charter.NewServer(":10440", "charting_service.log")
 		if err != nil {
 			fmt.Println("error starting charter", err)
 			return

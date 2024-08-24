@@ -142,6 +142,20 @@ func NewServer(url string, firstUser bool) *Server {
 	}
 	s.Gateway.Handle("/splash", s.ValidateToken(http.HandlerFunc(s.SplashView)))
 	s.Gateway.Handle("/ws/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		tk, err := s.GetTokenFromSession(r)
+		if err != nil {
+			http.Error(w, "nice try! you must pay the toll", http.StatusBadRequest)
+			return
+		}
+		t, err := s.GetToken(tk)
+		if err != nil {
+			http.Error(w, "error getting token", http.StatusBadRequest)
+			return
+		}
+		if t.ExpiresAt.Before(time.Now()) {
+			http.Error(w, "token expired", http.StatusBadRequest)
+			return
+		}
 		s.ServeWS(rooms, w, r)
 	}))
 
