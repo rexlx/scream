@@ -34,7 +34,7 @@ var (
 	keyFile              = flag.String("key-file", "server-key.pem", "key file")
 	firstUserMode        = flag.Bool("first-user-mode", false, "first user mode")
 	updateFreq           = flag.Duration("update-freq", 2*time.Minute, "update frequency")
-	selfHostMicroService = flag.Bool("self-host", false, "self host microservice")
+	selfHostMicroService = flag.Bool("self-host", true, "self host microservice")
 )
 
 type Server struct {
