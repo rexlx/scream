@@ -16,7 +16,7 @@ type Server struct {
 	Gateway   *http.ServeMux
 }
 
-func NewServer(url, fh string) (*Server, error) {
+func NewServer(fh string) (*Server, error) {
 	file, err := os.OpenFile(fh, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		return nil, err
@@ -29,7 +29,7 @@ func NewServer(url, fh string) (*Server, error) {
 		Gateway:   http.NewServeMux(),
 	}
 	s.Gateway.HandleFunc("/graph", s.CreateGraph)
-	s.Logger.Printf("Server started at %s\n", url)
+	// s.Logger.Printf("Server started at %s\n", url)
 
 	return s, nil
 }

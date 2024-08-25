@@ -35,6 +35,9 @@ var (
 	firstUserMode        = flag.Bool("first-user-mode", false, "first user mode")
 	updateFreq           = flag.Duration("update-freq", 2*time.Minute, "update frequency")
 	selfHostMicroService = flag.Bool("self-host", true, "self host microservice")
+	chartServiceURL      = flag.String("chart-service-url", "http://localhost:10440/graph", "chart service url")
+	chartServicePort     = flag.String("chart-service-port", ":10440", "chart service port")
+	chartServiceLog      = flag.String("chart-service-log", "charting_service.log", "chart service log")
 )
 
 type Server struct {
@@ -50,6 +53,7 @@ type Server struct {
 	Graphs      map[string]string
 	GraphCache  string
 	URL         string
+	ChartURL    string
 	Session     *scs.SessionManager
 }
 
@@ -66,7 +70,7 @@ type Token struct {
 
 // TODO were not actually storing stats in any sort of time series based way
 // i think literally just a single point in time lol
-func NewServer(url string, firstUser bool) *Server {
+func NewServer(url string, firstUser bool, chartUrl string) *Server {
 	defer func(t time.Time) {
 		fmt.Println("NewServer: time taken: ", time.Since(t))
 	}(time.Now())
@@ -113,6 +117,7 @@ func NewServer(url string, firstUser bool) *Server {
 		Context:     nil,
 		Rooms:       rooms,
 		URL:         url,
+		ChartURL:    chartUrl,
 		Session:     sessionMgr,
 	}
 	// s.Gateway.HandleFunc("/", s.RoomHandler)
@@ -400,7 +405,7 @@ func (s *Server) UpdateGraphs(t time.Duration) {
 		fmt.Println(err)
 		return
 	}
-	req, err := http.NewRequest("POST", "http://localhost:10440/graph", bytes.NewBuffer(out))
+	req, err := http.NewRequest("POST", s.ChartURL, bytes.NewBuffer(out))
 	if err != nil {
 		fmt.Println(err)
 	}
