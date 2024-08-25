@@ -1,5 +1,10 @@
 # screamery
 
+## branch details
+- add stats collection
+- add microservice for creating graphs
+- test graphing
+
 ### a chat app
 
 go / htmx / bbolt / bulma.

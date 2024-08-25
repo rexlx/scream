@@ -9,7 +9,7 @@ import (
 
 func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	defer func(t time.Time) {
-		s.Logger.Println("LoginHandler->time taken: ", time.Since(t))
+		s.Logger.Println("LoginHandler: time taken: ", time.Since(t))
 	}(time.Now())
 	tkn, _ := s.GetTokenFromSession(r)
 	if tkn != "" {
@@ -20,13 +20,13 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	u, err := s.GetUserByEmail(email)
 	if err != nil || u.Email == "" {
-		s.Logger.Println("user not found", email)
+		s.Logger.Println("LoginHandler: user not found", email)
 		fmt.Fprintf(w, authNotification, "is-danger", "that straight up did not work")
 		return
 	}
 	ok, err := u.PasswordMatches(password)
 	if err != nil {
-		s.Logger.Println("error checking password", err)
+		s.Logger.Println("error checking password", err, email)
 		fmt.Fprintf(w, authNotification, "is-danger", "that straight up did not work")
 		return
 	}
@@ -36,6 +36,12 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	u.updateHandle()
+	err = s.AddUser(u)
+	if err != nil {
+		s.Logger.Println("error saving user", err)
+		fmt.Fprintf(w, authNotification, "is-danger", "an error occured when saving user...")
+		return
+	}
 	tk, err := u.Token.CreateToken(u.ID, s.Session.Lifetime)
 	if err != nil {
 		s.Logger.Println("error creating token", err)
@@ -57,6 +63,9 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.Logger.Println("login successful", u.Email)
+	s.Memory.Lock()
+	s.Stats["logins"]++
+	s.Memory.Unlock()
 	w.Header().Set("HX-Redirect", "/splash")
 	fmt.Fprintf(w, authNotification, "is-success", "login successful")
 	// theirRoom := fmt.Sprintf("/room/%s", u.ID)
@@ -96,11 +105,6 @@ func (s *Server) clearAuthNotificationHandler(w http.ResponseWriter, r *http.Req
 }
 
 func (s *Server) MessageHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO we could get the user and pass the userid to the WSHMessage
-	// gaining the ability to link the div to the user!
-	// defer func(t time.Time) {
-	// 	s.Logger.Println("MessageHandler->time taken: ", time.Since(t))
-	// }(time.Now())
 	tk, err := s.GetTokenFromSession(r)
 	if err != nil {
 		w.Header().Set("HX-Redirect", "/access")
@@ -138,6 +142,9 @@ func (s *Server) MessageHandler(w http.ResponseWriter, r *http.Request) {
 	}(message, roomid, token)
 	out := `<input class="input is-outlined" type="text" name="message" id="messageBox" hx-swap-oob="true" placeholder="Type your message...">`
 	fmt.Fprint(w, out)
+	s.Memory.Lock()
+	s.Stats["messages_sent"]++
+	s.Memory.Unlock()
 }
 
 func (s *Server) AddUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -206,6 +213,9 @@ func (s *Server) RoomHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	go func(tk string, roomName string) {
+		defer func(tk string, roomName string) {
+			fmt.Println(time.Now(), "userHistoryUpdate: done", tk, roomName)
+		}(tk, roomName)
 		token, err := s.GetToken(tk)
 		if err != nil {
 			fmt.Println("userHistoryUpdate: error getting token", err)
@@ -226,6 +236,20 @@ func (s *Server) RoomHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprintf(w, chatView, room.ID, room.ID, room.ID, room.Name)
 
+}
+
+func (s *Server) StatHandler(w http.ResponseWriter, r *http.Request) {
+	// out := ""
+	// graphDiv := `<div class="mb-3">
+	// <h1 class="title is-1">%v</h1>
+	// %v</div>`
+	// for k, v := range s.Graphs {
+	// 	out += fmt.Sprintf(graphDiv, k, v)
+	// }
+
+	s.Memory.RLock()
+	defer s.Memory.RUnlock()
+	fmt.Fprint(w, s.GraphCache)
 }
 
 func (s *Server) SplashView(w http.ResponseWriter, r *http.Request) {
@@ -372,6 +396,7 @@ func (s *Server) GetRoomByName(name string) (*Room, error) {
 	defer s.Memory.RUnlock()
 	for k, v := range s.Rooms {
 		if v.Name == name {
+			s.Stats["room_queries"]++
 			return s.Rooms[k], nil
 		}
 

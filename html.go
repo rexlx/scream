@@ -430,8 +430,8 @@ var splashView = `<!DOCTYPE html>
                 <h2 class="title is-2 has-text-info">hi there</h2>
                 <p class="subtitle has-text-info-light">welcome to the conversation. please do not be vulgar</p>
                 <p class="subtitle has-text-info-light">this is a small chat application for a few trusted users. navigate to any room by going to https://url.com/<strong>room/literallywhatever</strong></p>
-                <a href="/room/welcome" class="button is-info">enter the welcome chat</a>
-                <a href="/help" class="button is-info">get help</a>
+                <a href="/room/welcome" class="button is-info is-outlined">enter the welcome chat</a>
+                <a href="/help" class="button is-info is-outlined">get help</a>
             </div>
         </div>
     </div>
@@ -440,3 +440,6 @@ var splashView = `<!DOCTYPE html>
 </body>
 </html>
 `
+var polyLineSVG = `<svg width="%v" height="%v" xmlns="http://www.w3.org/2000/svg">
+  <polyline points="%v" fill="none" stroke="blue" stroke-width="1" />
+</svg>`

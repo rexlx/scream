@@ -26,7 +26,7 @@ func (s *Server) ValidateToken(next http.Handler) http.Handler {
 			http.Error(w, "token expired", http.StatusUnauthorized)
 			return
 		}
-		s.Logger.Println("token valid")
+		// s.Logger.Println("token valid")
 		next.ServeHTTP(w, r)
 	})
 }
