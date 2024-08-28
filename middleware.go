@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 )
@@ -17,6 +18,7 @@ func (s *Server) ValidateToken(next http.Handler) http.Handler {
 		tk, err := s.GetToken(token)
 		if err != nil {
 			s.Logger.Println("error getting token", token)
+			fmt.Println("erroneous token", token)
 			http.Error(w, "error getting token", http.StatusUnauthorized)
 			return
 		}

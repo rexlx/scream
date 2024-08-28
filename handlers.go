@@ -9,7 +9,9 @@ import (
 
 func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	defer func(t time.Time) {
-		s.Logger.Println("LoginHandler: time taken: ", time.Since(t))
+		ts := time.Since(t)
+		s.Logger.Println("LoginHandler: time taken: ", ts)
+		fmt.Println("LoginHandler: time taken: ", ts)
 	}(time.Now())
 	tkn, _ := s.GetTokenFromSession(r)
 	if tkn != "" {
@@ -21,17 +23,20 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	u, err := s.GetUserByEmail(email)
 	if err != nil || u.Email == "" {
 		s.Logger.Println("LoginHandler: user not found", email)
+		fmt.Println("LoginHandler: user not found", email)
 		fmt.Fprintf(w, authNotification, "is-danger", "that straight up did not work")
 		return
 	}
 	ok, err := u.PasswordMatches(password)
 	if err != nil {
 		s.Logger.Println("error checking password", err, email)
+		fmt.Println("error checking password", err, email)
 		fmt.Fprintf(w, authNotification, "is-danger", "that straight up did not work")
 		return
 	}
 	if !ok {
 		s.Logger.Println("password does not match", email)
+		fmt.Println("password does not match", email)
 		fmt.Fprintf(w, authNotification, "is-danger", "that straight up did not work")
 		return
 	}
@@ -63,6 +68,7 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.Logger.Println("login successful", u.Email)
+	fmt.Println("login successful", u.Email)
 	s.Memory.Lock()
 	s.Stats["logins"]++
 	s.Memory.Unlock()

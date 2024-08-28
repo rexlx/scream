@@ -220,7 +220,7 @@ func (s *Server) GetUserByEmail(email string) (User, error) {
 		b := tx.Bucket([]byte(*userBucket))
 		v := b.Get([]byte(email))
 		if v == nil {
-			s.Logger.Println("user not found")
+			fmt.Println("GetUserByEmail: user not found")
 			s.Stats["user_not_found"]++
 			return nil
 		}
